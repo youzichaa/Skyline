@@ -1,0 +1,34 @@
+https://github.com/mpc-msri/EzPC.git
+
+sudo apt-get install g++ (version >= 8)
+sudo apt-get install cmake
+sudo apt-get install make
+sudo apt-get install libgmp-dev
+sudo apt-get install libmpfr-dev
+sudo apt-get install libssl-dev
+
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=./install .. -DBUILD_TESTS=ON -DBUILD_NETWORKS=ON
+cmake --build . --target install --parallel
+./skyline-OT r=1 p=8000 & ./skyline-OT r=2 p=8000
+./matmul-OT r=1 p=32000 & ./matmul-OT r=2 p=32000
+
+"modify aux.cpp and aux.h file"
+
+vi ./run.sh
+#!/bin/sh
+./skyline-OT r=1  p=8000 & ./skyline-OT r=2 p=8000
+
+chmod +x run.sh
+nohup ./run.sh &
+nohup ./run.sh >output.out 2>&1 &
+
+ps -ef|grep skyline-OT
+
+g++ -fopenmp test.cpp -o test
+./test
+
+small-anti-correlated
+small-correlated
+small-uniformly-distributed
+

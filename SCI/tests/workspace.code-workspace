@@ -1,0 +1,13 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "../src"
+        },
+        {
+            "path": "../../../new-EzPC/SCI/tests"
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "C/C++",
+            "command": "cmake",
+            "args": [
+                "--build",
+                ".",
+                "--target","install",
+                "--parallel"
+            ],
+            "options": {
+                "cwd": "${fileDirname}/../build/"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "调试器生成的任务。"
+        }
+    ],
+    "version": "2.0.0"
+}
