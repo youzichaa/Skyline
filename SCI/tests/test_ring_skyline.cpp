@@ -627,117 +627,6 @@ void comparison_with_eq2N(int dim, uint64_t *x, uint64_t *y, uint8_t *&out, AuxP
   delete[] out1;
 }
 
-void comparison_with_eq2N(int dim, uint64_t *x, uint64_t *y, uint64_t *&out,uint64_t *&out4,uint64_t *&out2,uint8_t *&out5,uint8_t *&out3, AuxProtocols *Aux)
-{
-  int bw_x = lambda + 32;
-  uint64_t mask_x = (bw_x == 64 ? -1 : ((1ULL << bw_x) - 1));
-  uint64_t BigPositive = 1ULL << (lambda + 31);
-  uint64_t *in1 = new uint64_t[2 * dim];
-  uint8_t *cmp1 = new uint8_t[2 * dim];
-  uint8_t *eq1 = new uint8_t[2 * dim];
-  uint64_t *out1 = new uint64_t[2 * dim];
-  // uint8_t *ba = new uint8_t[2 * dim];
-  uint64_t *in = new uint64_t[dim];
-  uint8_t *cmp = new uint8_t[dim];
-  uint8_t *eq = new uint8_t[dim];
-  if (party == ALICE)
-  {
-    for (int j = 0; j < dim; j++) {
-      in1[j] = x[j];
-      in1[j+dim] = y[j];
-    }
-    // memset(ba, 1, 2*dim);
-  }
-  else
-  {
-    for (int j = 0; j < dim; j++) {
-      in1[j] = (0 - x[j]) & mask;
-      in1[j+dim] = (0 - y[j]) & mask;
-    }
-    // memset(ba, 0, 2*dim);
-  }
-  Aux->comparison_with_eq(cmp1, eq1, in1, 2 * dim, lambda); // Bob less and equal than Alice ,result is 1. Greater  is 0.
-  for (int i = 0; i < 2 * dim; i++)
-  {
-    cmp1[i] = (cmp1[i] ^ eq1[i]) & 1;
-  }
-  // Aux->AND(cmp1, ba, ba, 2 * dim);
-  // for (int i = 0; i < dim; i++)
-  // {
-  //   cmp1[i] = (cmp1[i] - ba[i]) & 1;
-  // }
-  // if (party == ALICE)
-  // {
-  //   uint8_t *tC2 =  new uint8_t[2 * dim]; 
-  //   Iot[2]->recv_data(tC2, 2 * dim * sizeof(uint8_t));
-  //   Iot[3]->send_data(cmp1, 2 * dim * sizeof(uint8_t));
-  //   for (int i = 0; i < 2 * dim; i++)
-  //   {
-  //     out3[i] = (cmp1[i]^tC2[i])&1;
-  //     out5[i] = cmp1[i];
-  //   }
-  //   delete[] tC2;
-  // }
-  // else
-  // {
-  //   uint8_t *tC2 =  new uint8_t[2 * dim]; 
-  //   Iot[2]->send_data(cmp1, 2 * dim * sizeof(uint8_t));
-  //   Iot[3]->recv_data(tC2, 2 * dim * sizeof(uint8_t));
-  //   for (int i = 0; i < 2 * dim; i++)
-  //   {
-  //     out3[i] = (cmp1[i]^tC2[i])&1;
-  //     out5[i] = cmp1[i];
-  //   }
-  //   delete[] tC2;
-  // }
-  Aux->B2A(cmp1, out1, 2 * dim, 32); // binary share to arithmetic share
-  // memcpy(out2, out1, 2*dim);
-  if (party == ALICE)
-  {
-    for (int j = 0; j < dim; j++) {
-      // {x1-y1-mask*(x1>=mask-x2)}>={y2-x2-mask*(y1>=mask-y2)}
-      in[j] = BigPositive + x[j] - y[j] + ((out1[j+dim]-out1[j])&mask)*(mask + 1);
-    }
-    // uint64_t *tC1 =  new uint64_t[2 * dim]; 
-    // Iot[0]->recv_data(tC1, 2 * dim * sizeof(uint64_t));
-    // Iot[1]->send_data(out1, 2 * dim * sizeof(uint64_t));
-    // for (int i = 0; i < 2 * dim; i++)
-    // {
-    //   out2[i] = (out1[i]+tC1[i]);
-    //   out4[i] = out1[i];
-    // }
-    // delete[] tC1;
-  }
-  else
-  {
-    for (int j = 0; j < dim; j++) {
-      in[j] = BigPositive + y[j] - x[j] + ((out1[j]-out1[j+dim])&mask)*(mask + 1);
-    }
-    // uint64_t *tC1 =  new uint64_t[2 * dim]; 
-    // Iot[0]->send_data(out1, 2 * dim * sizeof(uint64_t));
-    // Iot[1]->recv_data(tC1, 2 * dim * sizeof(uint64_t));
-    // for (int i = 0; i < 2 * dim; i++)
-    // {
-    //   out2[i] = (out1[i]+tC1[i]);
-    //   out4[i] = out1[i];
-    // }
-    // delete[] tC1;
-  }
-  Aux->comparison_with_eq(cmp, eq, in, dim, bw_x); // Bob less and equal than Alice ,result is 1. Greater  is 0.
-  for (int i = 0; i < dim; i++)
-  {
-    cmp[i] = (cmp[i] ^ eq[i]) & 1;
-  }
-  Aux->B2A(cmp, out, dim, lambda);
-  delete[] cmp;
-  delete[] eq;
-  delete[] in;
-  delete[] in1;
-  delete[] cmp1;
-  delete[] eq1;
-  delete[] out1;
-}
-
 void equality(int dim, uint64_t *in, uint64_t *&out, AuxProtocols *Aux)
 {
   int bw_x = 32;
@@ -1619,296 +1508,6 @@ void Poly(int len, uint64_t *a, int x, uint64_t &res)
   } 
 }
 
-uint64_t *SkylineRes_old(vector<uint32_t> Q, uint32_t &reslen)
-{
-  int polylen = 3;
-  int len1 = SS_G[0][0];
-  int len2 = SS_G[0][1];
-  uint64_t **a = new uint64_t*[len1];
-  for (int i = 0; i < len1; i++)
-  {
-    a[i] = new uint64_t[polylen];
-    prg.random_data(a[i], polylen * sizeof(uint64_t));
-  } 
-  // uint64_t *a = new uint64_t[len1];
-  // uint64_t *b = new uint64_t[len1];
-  // prg.random_data(a, len1 * sizeof(uint64_t));
-  // prg.random_data(b, len1 * sizeof(uint64_t));
-  uint64_t *b = new uint64_t[polylen];
-  prg.random_data(b, polylen * sizeof(uint64_t));
-  // uint64_t a2 = 0;
-  // uint64_t b2 = 0;
-  // prg.random_data(&a2, sizeof(uint64_t));
-  // prg.random_data(&b2, sizeof(uint64_t));
-  // dummy element
-  double startd = omp_get_wtime();
-  cout << "dummy element" << endl;
-  int len = 0;
-  #pragma omp parallel for reduction(max:len)
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      if (len < SS_L[(k1 * len2) + k2])
-        len = SS_L[(k1 * len2) + k2];
-    }
-  }
-  cout << "len:"<< len << endl;
-  uint64_t SS_one = 0;
-  if (party == ALICE)
-  {
-    prg.random_data(&SS_one, sizeof(uint64_t));
-    Iot[0]->send_data(&SS_one, sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(&SS_one, sizeof(uint64_t));
-    SS_one = (1 - SS_one) & mask;
-  }
-  uint64_t SS_zero = 0;
-  if (party == ALICE)
-  {
-    prg.random_data(&SS_zero, sizeof(uint64_t));
-    Iot[0]->send_data(&SS_zero, sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(&SS_zero, sizeof(uint64_t));
-    SS_zero = (0 - SS_zero) & mask;
-  }
-  uint64_t *tmp0 = new uint64_t[len];
-  for (int k2 = len2 - 1; k2 >= 0; k2--)
-  {
-    for (int k1 = 0; k1 < len1; k1++)
-    {
-      int slen = SS_L[(k1 * len2) + k2];
-      if (len == slen)
-        continue;
-      memcpy(tmp0, SS_Skyline[(k1 * len2) + k2], slen * sizeof(uint64_t));
-      for (int k = slen; k < len; k++)
-      {
-        // if (party == ALICE)
-        // {
-        //   prg.random_data(&SS_zero, sizeof(uint64_t));
-        //   Iot[0]->send_data(&SS_zero, sizeof(uint64_t));
-        //   tmp0[k] = SS_zero;
-        // }
-        // else
-        // {
-        //   Iot[0]->recv_data(&SS_zero, sizeof(uint64_t));
-        //   tmp0[k] = (0 - SS_zero) & mask;
-        // }
-        tmp0[k] = SS_zero;
-      }
-      delete[] SS_Skyline[(k1 * len2) + k2];
-      SS_Skyline[(k1 * len2) + k2] = new uint64_t[len];
-      memcpy(SS_Skyline[(k1 * len2) + k2], tmp0, len * sizeof(uint64_t));
-    }
-  }
-  delete[] tmp0;
-  double endd = omp_get_wtime();
-  ss_dummy = endd - startd;
-  cout << ss_dummy << " s" << endl;
-  double startm = omp_get_wtime();
-  cout << "mask element" << endl;
-  // m+a*i+b
-  #pragma omp parallel num_threads(THs)
-  {
-    #pragma omp single 
-    {
-      for (int itr = 0; itr < THs; itr++)
-      {
-        #pragma omp task firstprivate(itr, THs, SS_L)
-        {
-          int lendt = (((len1 - 1) * itr)/ THs) + 1;
-          int lenut = ((len1 - 1) * (itr + 1))/ THs;
-          if(itr == 0){
-            lendt = 0;
-          }
-          for (int k1 = lendt; k1 <= lenut; k1++)
-          {
-            for (int k2 = 0; k2 < len2; k2++)
-            {
-              // construct the same skyline
-              // int slen = SS_L[(k1<<MAX)+k2];
-              // uint64_t offset = a[k1][0] + a[k1][1]* k2 ; // a*j+b
-              uint64_t offset = 0;
-              Poly(polylen, a[k1], k2, offset);
-              int lent = SS_L[(k1 * len2) + k2];
-              for (int k = 0; k < lent; k++)
-              {
-                SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + offset) & mask;
-              }
-              uint64_t *tmp1 = new uint64_t[lent];
-              if (party == ALICE)
-              {
-                Iot[itr]->send_data(SS_Skyline[(k1 * len2) + k2], lent * sizeof(uint64_t));
-                Iot[itr]->recv_data(tmp1, lent * sizeof(uint64_t));
-              }
-              else
-              {
-                Iot[itr]->recv_data(tmp1, lent * sizeof(uint64_t));
-                Iot[itr]->send_data(SS_Skyline[(k1 * len2) + k2], lent * sizeof(uint64_t));
-              }
-              for (int k = 0; k < lent; k++)
-              {
-                SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + tmp1[k]) & mask;
-              }
-              delete[] tmp1;
-            }
-          }
-        }
-      }
-      #pragma omp taskwait
-    }  
-  }
-
-  // for (int k1 = 0; k1 < len1; k1++)
-  // {
-  //   for (int k2 = 0; k2 < len2; k2++)
-  //   {
-  //     // construct the same skyline
-  //     // int slen = SS_L[(k1<<MAX)+k2];
-  //     // uint64_t offset = a[k1][0] + a[k1][1]* k2 ; // a*j+b
-  //     uint64_t offset = 0;
-  //     Poly(polylen, a[k1], k2, offset);
-  //     int slen = SS_L[(k1 * len2) + k2];
-  //     for (int k = 0; k < slen; k++)
-  //     {
-  //       SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + offset) & mask;
-  //     }
-  //     uint64_t *tmp1 = new uint64_t[slen];
-  //     if (party == ALICE)
-  //     {
-  //       Iot[0]->send_data(SS_Skyline[(k1 * len2) + k2], slen * sizeof(uint64_t));
-  //       Iot[0]->recv_data(tmp1, slen * sizeof(uint64_t));
-  //     }
-  //     else
-  //     {
-  //       Iot[0]->recv_data(tmp1, slen * sizeof(uint64_t));
-  //       Iot[0]->send_data(SS_Skyline[(k1 * len2) + k2], slen * sizeof(uint64_t));
-  //     }
-  //     for (int k = 0; k < slen; k++)
-  //     {
-  //       SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + tmp1[k]) & mask;
-  //     }
-  //     delete[] tmp1;
-  //   }
-  // } 
-  
-  double endm = omp_get_wtime();
-  ss_mask = endm - startm;
-  cout << ss_mask << " s" << endl;
-  cout << "select element" << endl;
-  // select
-  double starts = omp_get_wtime();
-  uint32_t *pos = new uint32_t[m];
-  unordered_map<uint32_t, uint32_t *> posindex;
-  PosIndex(Q, SS_G, pos, posindex);
-  uint64_t *res = new uint64_t[len]();
-  uint64_t *inA = new uint64_t[1];
-  uint64_t *inB = new uint64_t[1];
-  uint64_t *outC = new uint64_t[1];
-  uint64_t *JT = new uint64_t[polylen];
-  uint64_t *IT = new uint64_t[polylen];
-  JT[0] = SS_one;
-  JT[1] = pos[1];
-  for (int i = 2; i < polylen; i++)
-  {
-    inA[0] = JT[i/2];
-    inB[0] = JT[i - i/2];
-    outC[0] = 0;
-    Prod_H(1, inA, inB, outC, Prodt[0]);
-    JT[i] = outC[0];
-  }
-  IT[0] = SS_one;
-  IT[1] = pos[0];
-  for (int i = 2; i < polylen; i++)
-  {
-    inA[0] = IT[i/2];
-    inB[0] = IT[i - i/2];
-    outC[0] = 0;
-    Prod_H(1, inA, inB, outC, Prodt[0]);
-    IT[i] = outC[0];
-  }
-  uint64_t *tmp2 = new uint64_t[len1 * len];
-  uint64_t *tmpt = new uint64_t[len1 * len];
-  uint64_t *outD = new uint64_t[polylen];
-  memset(tmp2, 0, (len1 * len) * sizeof(uint64_t));
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      // select
-      int slen = SS_L[(k1 * len2) + k2];
-      for (int k = 0; k < slen; k++)
-      {
-        tmp2[k1 * len + k] = (tmp2[k1 * len + k] + SS_Skyline[(k1 * len2) + k2][k] * posindex[1][k2]) & mask;
-      }
-    }
-    //a[k1]*pos[1]+b[k1])
-    uint64_t mk1 = 0;
-    Prod_H(polylen, a[k1], JT, outD, Prodt[0]);
-    for (int k = 0; k < polylen; k++)
-    {
-      mk1 = (mk1 + outD[k]) & mask;
-    }
-    // uint64_t offset = b[0] + b[1] * k1;  // a2*i+b2
-    uint64_t offset = 0;
-    Poly(polylen, b, k1, offset);
-    for (int k = 0; k < len; k++)
-    {
-      tmp2[k1* len + k] = (tmp2[k1 * len + k] + offset - mk1) & mask; //(m+a[k1]*j+b[k1]) + a2*i+b2 - a[k1]*j-b[k1]
-    }
-    if (party == ALICE)
-    {
-      Iot[0]->send_data(tmp2 + k1 * len, len * sizeof(uint64_t));
-      Iot[0]->recv_data(tmpt + k1 * len, len * sizeof(uint64_t));
-    }
-    else
-    {
-      Iot[0]->recv_data(tmpt + k1 * len, len * sizeof(uint64_t));
-      Iot[0]->send_data(tmp2 + k1 * len, len * sizeof(uint64_t));
-    }
-    for (int k = 0; k < len; k++)
-    {
-      res[k] = (res[k] + (tmpt[k1 * len + k] + tmp2[k1 * len + k]) * posindex[0][k1]) & mask;
-    }
-  }
-  delete[] tmpt;
-  delete[] tmp2;
-  //a2*pos[0]+b2
-  uint64_t mk2 = 0;
-  Prod_H(polylen, b, IT, outD, Prodt[0]);
-  for (int k = 0; k < polylen; k++)
-  {
-      mk2 = (mk2 + outD[k]) & mask;
-  }
-  for (int k = 0; k < len; k++)
-  {
-    res[k] = (res[k] - mk2) & mask; //(m+a2*i+b2) - a2*i+b2
-  }
-  reslen = len;
-  double ends = omp_get_wtime();
-  ss_select = ends - starts;
-  cout << ss_select << " s" << endl;
-  delete[] a;
-  delete[] b;
-  delete[] JT;
-  delete[] IT;
-  delete[] pos;
-  delete[] inA;
-  delete[] inB;
-  delete[] outC;
-  delete[] outD;
-  for (int k = 0; k < m; k++)
-  {
-    delete[] posindex[k];
-  }
-  posindex.clear();
-  return res;
-}
-
 uint64_t *SkylineRes(vector<uint32_t> Q, uint32_t &reslen)
 {
   int polylen = 2;
@@ -2249,251 +1848,6 @@ uint64_t *SkylineRes(vector<uint32_t> Q, uint32_t &reslen)
   delete[] tmpt;
   delete[] tmp2;
   delete[] pos;
-  for (int k = 0; k < m; k++)
-  {
-    delete[] posindex[k];
-  }
-  posindex.clear();
-  return res;
-}
-
-uint64_t *SkylineRes_T_old(vector<uint32_t> Q, uint32_t &reslen)
-{
-  int polylen = 3;
-  int len1 = SS_G[0][0];
-  int len2 = SS_G[0][1];
-  uint64_t **a = new uint64_t*[len1];
-  for (int i = 0; i < len1; i++)
-  {
-    a[i] = new uint64_t[polylen];
-    prg.random_data(a[i], polylen * sizeof(uint64_t));
-  } 
-  uint64_t *b = new uint64_t[polylen];
-  prg.random_data(b, polylen * sizeof(uint64_t));
-  // dummy element
-  double startd = omp_get_wtime();
-  cout << "dummy element" << endl;
-  int len = 0;
-  #pragma omp parallel for reduction(max:len)
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      if (len < SS_L[(k1 * len2) + k2])
-        len = SS_L[(k1 * len2) + k2];
-    }
-  }
-  cout << "len:"<< len << endl;
-  uint64_t SS_one = 0;
-  if (party == ALICE)
-  {
-    prg.random_data(&SS_one, sizeof(uint64_t));
-    Iot[0]->send_data(&SS_one, sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(&SS_one, sizeof(uint64_t));
-    SS_one = (1 - SS_one) & mask;
-  }
-  uint64_t SS_zero = 0;
-  if (party == ALICE)
-  {
-    prg.random_data(&SS_zero, sizeof(uint64_t));
-    Iot[0]->send_data(&SS_zero, sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(&SS_zero, sizeof(uint64_t));
-    SS_zero = (0 - SS_zero) & mask;
-  }
-  double endd = omp_get_wtime();
-  ss_dummy = endd - startd;
-  cout << ss_dummy << " s" << endl;
-  double startm = omp_get_wtime();
-  cout << "mask element" << endl;
-  // m+a*i+b
-  #pragma omp parallel num_threads(THs)
-  {
-    #pragma omp single 
-    {
-      for (int itr = 0; itr < THs; itr++)
-      {
-        #pragma omp task firstprivate(itr, THs, SS_L)
-        {
-          int lendt = (((len1 - 1) * itr)/ THs) + 1;
-          int lenut = ((len1 - 1) * (itr + 1))/ THs;
-          if(itr == 0){
-            lendt = 0;
-          }
-          for (int k1 = lendt; k1 <= lenut; k1++)
-          {
-            for (int k2 = 0; k2 < len2; k2++)
-            {
-              // construct the same skyline
-              // int slen = SS_L[(k1<<MAX)+k2];
-              // uint64_t offset = a[k1][0] + a[k1][1]* k2 ; // a*j+b
-              uint64_t offset = 0;
-              Poly(polylen, a[k1], k2, offset);
-              int lent = SS_L[(k1 * len2) + k2];
-              for (int k = 0; k < lent; k++)
-              {
-                SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + offset) & mask;
-              }
-              uint64_t *tmp1 = new uint64_t[lent];
-              if (party == ALICE)
-              {
-                Iot[itr]->send_data(SS_Skyline[(k1 * len2) + k2], lent * sizeof(uint64_t));
-                Iot[itr]->recv_data(tmp1, lent * sizeof(uint64_t));
-              }
-              else
-              {
-                Iot[itr]->recv_data(tmp1, lent * sizeof(uint64_t));
-                Iot[itr]->send_data(SS_Skyline[(k1 * len2) + k2], lent * sizeof(uint64_t));
-              }
-              for (int k = 0; k < lent; k++)
-              {
-                SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + tmp1[k]) & mask;
-              }
-              delete[] tmp1;
-            }
-          }
-        }
-      }
-      #pragma omp taskwait
-    }  
-  }
-  double endm = omp_get_wtime();
-  ss_mask = endm - startm;
-  cout << ss_mask << " s" << endl;
-  cout << "select element" << endl;
-  // select
-  double starts = omp_get_wtime();
-  uint32_t *pos = new uint32_t[m];
-  unordered_map<uint32_t, uint32_t *> posindex;
-  PosIndex(Q, SS_G, pos, posindex);
-  uint64_t *res = new uint64_t[len]();
-  uint64_t *inA = new uint64_t[1];
-  uint64_t *inB = new uint64_t[1];
-  uint64_t *outC = new uint64_t[1];
-  uint64_t *JT = new uint64_t[polylen];
-  uint64_t *IT = new uint64_t[polylen];
-  JT[0] = SS_one;
-  JT[1] = pos[1];
-  for (int i = 2; i < polylen; i++)
-  {
-    inA[0] = JT[i/2];
-    inB[0] = JT[i - i/2];
-    outC[0] = 0;
-    Prod_H(1, inA, inB, outC, Prodt[0]);
-    JT[i] = outC[0];
-  }
-  IT[0] = SS_one;
-  IT[1] = pos[0];
-  for (int i = 2; i < polylen; i++)
-  {
-    inA[0] = IT[i/2];
-    inB[0] = IT[i - i/2];
-    outC[0] = 0;
-    Prod_H(1, inA, inB, outC, Prodt[0]);
-    IT[i] = outC[0];
-  }
-  uint64_t *tmp2 = new uint64_t[len1 * len];
-  uint64_t *tmpt = new uint64_t[len1 * len];
-  uint64_t *outD = new uint64_t[polylen];
-  memset(tmp2, 0, (len1 * len) * sizeof(uint64_t));
-  #pragma omp parallel for
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      // select
-      int lent = SS_L[(k1 * len2) + k2];
-      for (int k = 0; k < lent; k++)
-      {
-        tmp2[k1 * len + k] = (tmp2[k1 * len + k] + SS_Skyline[(k1 * len2) + k2][k] * posindex[1][k2]) & mask;
-      }
-    }
-  }
-  #pragma omp parallel num_threads(THs)
-  {
-    #pragma omp single 
-    {
-      for (int itr = 0; itr < THs; itr++)
-      {
-        #pragma omp task firstprivate(itr, THs)
-        {
-          int lendt = (((len1 - 1) * itr)/ THs) + 1;
-          int lenut = ((len1 - 1) * (itr + 1))/ THs;
-          if(itr == 0){
-            lendt = 0;
-          }
-          for (int k1 = lendt; k1 <= lenut; k1++)
-          {
-            //a[k1]*pos[1]+b[k1])
-            uint64_t mk1 = 0;
-            Prod_H(polylen, a[k1], JT, outD, Prodt[itr]);
-            for (int k = 0; k < polylen; k++)
-            {
-              mk1 = (mk1 + outD[k]) & mask;
-            }
-            // uint64_t offset = b[0] + b[1] * k1;  // a2*i+b2
-            uint64_t offset = 0;
-            Poly(polylen, b, k1, offset);
-            for (int k = 0; k < len; k++)
-            {
-              tmp2[k1* len + k] = (tmp2[k1 * len + k] + offset - mk1) & mask; //(m+a[k1]*j+b[k1]) + a2*i+b2 - a[k1]*j-b[k1]
-            }
-            if (party == ALICE)
-            {
-              Iot[itr]->send_data(tmp2 + k1 * len, len * sizeof(uint64_t));
-              Iot[itr]->recv_data(tmpt + k1 * len, len * sizeof(uint64_t));
-            }
-            else
-            {
-              Iot[itr]->recv_data(tmpt + k1 * len, len * sizeof(uint64_t));
-              Iot[itr]->send_data(tmp2 + k1 * len, len * sizeof(uint64_t));
-            }
-          }
-        }
-      }
-      #pragma omp taskwait
-    }  
-  }
-  // #pragma omp parallel for reduction(+:res)
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k = 0; k < len; k++)
-    {
-      res[k] = (res[k] + (tmpt[k1 * len + k] + tmp2[k1 * len + k]) * posindex[0][k1]) & mask;
-    }
-  }
-
-  delete[] tmpt;
-  delete[] tmp2;
-  //a2*pos[0]+b2
-  uint64_t mk2 = 0;
-  Prod_H(polylen, b, IT, outD, Prodt[0]);
-  for (int k = 0; k < polylen; k++)
-  {
-      mk2 = (mk2 + outD[k]) & mask;
-  }
-  for (int k = 0; k < len; k++)
-  {
-    res[k] = (res[k] - mk2) & mask; //(m+a2*i+b2) - a2*i+b2
-  }
-  reslen = len;
-  double ends = omp_get_wtime();
-  ss_select = ends - starts;
-  cout << ss_select << " s" << endl;
-  delete[] a;
-  delete[] b;
-  delete[] JT;
-  delete[] IT;
-  delete[] pos;
-  delete[] inA;
-  delete[] inB;
-  delete[] outC;
-  delete[] outD;
   for (int k = 0; k < m; k++)
   {
     delete[] posindex[k];
@@ -2874,251 +2228,6 @@ uint64_t *SkylineRes_T(vector<uint32_t> Q, uint32_t &reslen)
   return res;
 }
 
-uint64_t *SkylineRes_T2(vector<uint32_t> Q, uint32_t &reslen)
-{
-  int polylen = 3;
-  int len1 = SS_G[0][0];
-  int len2 = SS_G[0][1];
-  uint64_t **a = new uint64_t*[len1];
-  for (int i = 0; i < len1; i++)
-  {
-    a[i] = new uint64_t[polylen];
-    prg.random_data(a[i], polylen * sizeof(uint64_t));
-  } 
-  uint64_t *b = new uint64_t[polylen];
-  prg.random_data(b, polylen * sizeof(uint64_t));
-  // dummy element
-  double startd = omp_get_wtime();
-  cout << "dummy element" << endl;
-  int len = 0;
-  #pragma omp parallel for reduction(max:len)
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      if (len < SS_L[(k1 * len2) + k2])
-        len = SS_L[(k1 * len2) + k2];
-    }
-  }
-  cout << "len:"<< len << endl;
-  uint64_t SS_one = 0;
-  if (party == ALICE)
-  {
-    prg.random_data(&SS_one, sizeof(uint64_t));
-    Iot[0]->send_data(&SS_one, sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(&SS_one, sizeof(uint64_t));
-    SS_one = (1 - SS_one) & mask;
-  }
-  uint64_t SS_zero = 0;
-  if (party == ALICE)
-  {
-    prg.random_data(&SS_zero, sizeof(uint64_t));
-    Iot[0]->send_data(&SS_zero, sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(&SS_zero, sizeof(uint64_t));
-    SS_zero = (0 - SS_zero) & mask;
-  }
-  double endd = omp_get_wtime();
-  ss_dummy = endd - startd;
-  cout << ss_dummy << " s" << endl;
-  double startm = omp_get_wtime();
-  cout << "mask element" << endl;
-  // m+a*i+b
-  #pragma omp parallel num_threads(THs)
-  {
-    #pragma omp single 
-    {
-      for (int itr = 0; itr < THs; itr++)
-      {
-        #pragma omp task firstprivate(itr, THs, SS_L)
-        {
-          int lendt = (((len1 - 1) * itr)/ THs) + 1;
-          int lenut = ((len1 - 1) * (itr + 1))/ THs;
-          if(itr == 0){
-            lendt = 0;
-          }
-          for (int k1 = lendt; k1 <= lenut; k1++)
-          {
-            for (int k2 = 0; k2 < len2; k2++)
-            {
-              // construct the same skyline
-              // int slen = SS_L[(k1<<MAX)+k2];
-              // uint64_t offset = a[k1][0] + a[k1][1]* k2 ; // a*j+b
-              uint64_t offset = 0;
-              Poly(polylen, a[k1], k2, offset);
-              int lent = SS_L[(k1 * len2) + k2];
-              for (int k = 0; k < lent; k++)
-              {
-                SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + offset) & mask;
-              }
-              uint64_t *tmp1 = new uint64_t[lent];
-              if (party == ALICE)
-              {
-                Iot[itr]->send_data(SS_Skyline[(k1 * len2) + k2], lent * sizeof(uint64_t));
-                Iot[itr]->recv_data(tmp1, lent * sizeof(uint64_t));
-              }
-              else
-              {
-                Iot[itr]->recv_data(tmp1, lent * sizeof(uint64_t));
-                Iot[itr]->send_data(SS_Skyline[(k1 * len2) + k2], lent * sizeof(uint64_t));
-              }
-              for (int k = 0; k < lent; k++)
-              {
-                SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + tmp1[k]) & mask;
-              }
-              delete[] tmp1;
-            }
-          }
-        }
-      }
-      #pragma omp taskwait
-    }  
-  }
-  double endm = omp_get_wtime();
-  ss_mask = endm - startm;
-  cout << ss_mask << " s" << endl;
-  cout << "select element" << endl;
-  // select
-  double starts = omp_get_wtime();
-  uint32_t *pos = new uint32_t[m];
-  unordered_map<uint32_t, uint32_t *> posindex;
-  PosIndex_T(Q, SS_G, pos, posindex);
-  uint64_t *res = new uint64_t[len]();
-  uint64_t *inA = new uint64_t[1];
-  uint64_t *inB = new uint64_t[1];
-  uint64_t *outC = new uint64_t[1];
-  uint64_t *JT = new uint64_t[polylen];
-  uint64_t *IT = new uint64_t[polylen];
-  JT[0] = SS_one;
-  JT[1] = pos[1];
-  for (int i = 2; i < polylen; i++)
-  {
-    inA[0] = JT[i/2];
-    inB[0] = JT[i - i/2];
-    outC[0] = 0;
-    Prod_H(1, inA, inB, outC, Prodt[0]);
-    JT[i] = outC[0];
-  }
-  IT[0] = SS_one;
-  IT[1] = pos[0];
-  for (int i = 2; i < polylen; i++)
-  {
-    inA[0] = IT[i/2];
-    inB[0] = IT[i - i/2];
-    outC[0] = 0;
-    Prod_H(1, inA, inB, outC, Prodt[0]);
-    IT[i] = outC[0];
-  }
-  uint64_t *tmp2 = new uint64_t[len1 * len];
-  uint64_t *tmpt = new uint64_t[len1 * len];
-  uint64_t *outD = new uint64_t[polylen];
-  memset(tmp2, 0, (len1 * len) * sizeof(uint64_t));
-  #pragma omp parallel for
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      // select
-      int lent = SS_L[(k1 * len2) + k2];
-      for (int k = 0; k < lent; k++)
-      {
-        tmp2[k1 * len + k] = (tmp2[k1 * len + k] + SS_Skyline[(k1 * len2) + k2][k] * posindex[1][k2]) & mask;
-      }
-    }
-  }
-  #pragma omp parallel num_threads(THs)
-  {
-    #pragma omp single 
-    {
-      for (int itr = 0; itr < THs; itr++)
-      {
-        #pragma omp task firstprivate(itr, THs)
-        {
-          int lendt = (((len1 - 1) * itr)/ THs) + 1;
-          int lenut = ((len1 - 1) * (itr + 1))/ THs;
-          if(itr == 0){
-            lendt = 0;
-          }
-          for (int k1 = lendt; k1 <= lenut; k1++)
-          {
-            //a[k1]*pos[1]+b[k1])
-            uint64_t mk1 = 0;
-            Prod_H(polylen, a[k1], JT, outD, Prodt[itr]);
-            for (int k = 0; k < polylen; k++)
-            {
-              mk1 = (mk1 + outD[k]) & mask;
-            }
-            // uint64_t offset = b[0] + b[1] * k1;  // a2*i+b2
-            uint64_t offset = 0;
-            Poly(polylen, b, k1, offset);
-            for (int k = 0; k < len; k++)
-            {
-              tmp2[k1* len + k] = (tmp2[k1 * len + k] + offset - mk1) & mask; //(m+a[k1]*j+b[k1]) + a2*i+b2 - a[k1]*j-b[k1]
-            }
-            if (party == ALICE)
-            {
-              Iot[itr]->send_data(tmp2 + k1 * len, len * sizeof(uint64_t));
-              Iot[itr]->recv_data(tmpt + k1 * len, len * sizeof(uint64_t));
-            }
-            else
-            {
-              Iot[itr]->recv_data(tmpt + k1 * len, len * sizeof(uint64_t));
-              Iot[itr]->send_data(tmp2 + k1 * len, len * sizeof(uint64_t));
-            }
-          }
-        }
-      }
-      #pragma omp taskwait
-    }  
-  }
-  // #pragma omp parallel for reduction(+:res)
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k = 0; k < len; k++)
-    {
-      res[k] = (res[k] + (tmpt[k1 * len + k] + tmp2[k1 * len + k]) * posindex[0][k1]) & mask;
-    }
-  }
-
-  delete[] tmpt;
-  delete[] tmp2;
-  //a2*pos[0]+b2
-  uint64_t mk2 = 0;
-  Prod_H(polylen, b, IT, outD, Prodt[0]);
-  for (int k = 0; k < polylen; k++)
-  {
-      mk2 = (mk2 + outD[k]) & mask;
-  }
-  for (int k = 0; k < len; k++)
-  {
-    res[k] = (res[k] - mk2) & mask; //(m+a2*i+b2) - a2*i+b2
-  }
-  reslen = len;
-  double ends = omp_get_wtime();
-  ss_select = ends - starts;
-  cout << ss_select << " s" << endl;
-  delete[] a;
-  delete[] b;
-  delete[] JT;
-  delete[] IT;
-  delete[] pos;
-  delete[] inA;
-  delete[] inB;
-  delete[] outC;
-  delete[] outD;
-  for (int k = 0; k < m; k++)
-  {
-    delete[] posindex[k];
-  }
-  posindex.clear();
-  return res;
-}
-
 void SMIN(int dim, uint64_t *in, int th, uint64_t &r) {
   uint64_t y = 1ULL << lambda;
   if(dim == 1){
@@ -3234,93 +2343,6 @@ void SMIN(int dim, uint64_t *in, int th, uint64_t &r) {
       if (in1[0]<(y/2))
       {
         in1[0] = y + in1[0];
-      }
-    }
-    comparison_with_eq(1, in1, C, Auxt[th]); // larger
-    in2[0] = (C2 - C1) & mask;
-    Prod_H(1, C, in2, res, Prodt[th]);
-    res[0] = (res[0] + C1) & mask;
-    r = res[0];
-    delete[] C;
-    delete[] in1;
-    delete[] in2;
-    delete[] res;
-    delete[] X1;
-    delete[] X2;
-  }
-}
-
-void SMIN1(int dim, uint64_t *in, int th, uint64_t &r) {
-  uint64_t y = 1ULL << (lambda - 1);
-  if(dim == 1){
-    r = in[0];
-  }else if(dim == 2){
-    uint64_t *C = new uint64_t[1];
-    uint64_t *in1 = new uint64_t[1];
-    uint64_t *res = new uint64_t[1];
-    uint64_t *in2 = new uint64_t[1];
-    uint64_t *fin1 = new uint64_t[1];
-    memset(in2, 0, sizeof(uint64_t));
-    uint64_t *fout1 = new uint64_t[1];
-    if (party == ALICE)
-    {
-      in1[0] = (in[0] - in[1]) & mask;
-      if ((in[0] < in[1]) && (in[1] - in[0] < y))
-      {
-        fin1[0] = 1;
-      }
-    }
-    else
-    {
-      in1[0] = (in[1] - in[0]) & mask;
-      if ((in[1] < in[0]) && (in[0] - in[1] < y))
-      {
-        fin1[0] = 1;
-      }
-    }
-    comparison_with_eq(1, in1, C, Auxt[th]); // larger
-    comparison_with_eq(1, in1, C, Auxt[th]);
-    in2[0] = (in[1] - in[0]) & mask;
-    Prod_H(1, C, in2, res, Prodt[th]);
-    res[0] = (res[0] + in[0]) & mask;
-    r = res[0];
-    delete[] C;
-    delete[] in1;
-    delete[] in2;
-    delete[] res;
-  }else {
-    uint64_t *X1 = new uint64_t[dim/2];
-    memcpy(X1, in, (dim/2) * sizeof(uint64_t));
-    uint64_t *X2 = new uint64_t[dim-dim/2];
-    memcpy(X2, in + (dim/2), (dim-dim/2) * sizeof(uint64_t));
-    uint64_t C1 = 0;
-    SMIN(dim/2, X1, th, C1);
-    uint64_t C2 = 0;
-    SMIN(dim-dim/2, X2, th, C2);
-    uint64_t *C = new uint64_t[1];
-    uint64_t *in1 = new uint64_t[1];
-    uint64_t *in2 = new uint64_t[1];
-    uint64_t *res = new uint64_t[1];
-    if (party == ALICE)
-    {
-      if (C1 < C2)
-      {
-        in1[0] = (mask + C1 - C2) & mask; //-2>-3==(mask-2)>(mask-3)
-      }
-      else
-      {
-        in1[0] = y + ((C1 - C2) & mask); // add the same 1
-      }
-    }
-    else
-    {
-      if (C2 < C1)
-      {
-        in1[0] = (mask + C2 - C1) & mask;
-      }
-      else
-      {
-        in1[0] = y + ((C2 - C1) & mask);
       }
     }
     comparison_with_eq(1, in1, C, Auxt[th]); // larger
@@ -3527,148 +2549,6 @@ void SMIN(int dims, int dime, uint64_t *S, uint64_t **pt, uint64_t **St, uint64_
     delete[] rTt;
   }
 }
-
-//old SMIN_T
-// void SMIN_T(int dims, int dime, uint64_t *S, uint64_t **pt, uint64_t **St, uint64_t &rS, uint64_t * &rP, uint64_t * &rT) {
-//   // [dims, dime)
-//   int thr = 2*THs;
-//   int dimt = dime - dims;
-//   // cout<< dimt << endl;
-//   if(dimt <= thr){
-//     int lt = dimt / 2;
-//     if(dimt == 1){
-//       rS = S[dims];
-//       memcpy(rP, pt[dims], m * sizeof(uint64_t));
-//       memcpy(rT, St[dims], m * sizeof(uint64_t));
-//       // PrintSKyline(0, rS);
-//     }else if(dimt == 2){
-//       TwoMIN(0, S[dims], S[dims+1], pt[dims], pt[dims+1], St[dims], St[dims+1], rS, rP, rT);
-//       // PrintSKyline(0, rS);
-//     }else if(dimt % 2 == 1){
-//       // uint64_t rSt = 0;
-//       // uint64_t *rPt = new uint64_t[m];
-//       // uint64_t *rTt = new uint64_t[m];
-//       // // PrintSKyline(pt[dime-1]);
-//       // SMIN_T(dims, dime - 1, S, pt, St, rSt, rPt, rTt);
-//       // TwoMIN(0, rSt, S[dime-1], rPt, pt[dime-1], rTt, St[dime-1], rS, rP, rT);
-//       // // PrintSKyline(0, rS);
-//       // delete[] rPt;
-//       // delete[] rTt;
-//       uint64_t *rSt = new uint64_t[lt+1];
-//       uint64_t **rPt = new uint64_t*[lt+1];
-//       uint64_t **rTt = new uint64_t*[lt+1];
-//       #pragma omp parallel num_threads(lt)
-//       {
-//         #pragma omp single 
-//         {
-//           for (int j = 0; j < lt; j++)
-//           {
-//             #pragma omp task firstprivate(j, lt)
-//             {
-//               int itr = dims + 2 * j;
-//               rSt[j] = 0;
-//               rPt[j] = new uint64_t[m];
-//               rTt[j] = new uint64_t[m];
-//               TwoMIN(j, S[itr], S[itr+1], pt[itr], pt[itr+1], St[itr], St[itr+1], rSt[j], rPt[j], rTt[j]);
-//             }
-//           }
-//           #pragma omp taskwait
-//         }  
-//       }
-//       rSt[lt] = S[dime-1];
-//       rPt[lt] = new uint64_t[m];
-//       rTt[lt] = new uint64_t[m];
-//       memcpy(rPt[lt], pt[dime-1], m * sizeof(uint64_t));
-//       memcpy(rTt[lt], St[dime-1], m * sizeof(uint64_t));
-//       SMIN_T(0, lt+1, rSt, rPt, rTt, rS, rP, rT);
-//       // PrintSKyline(0, rS);
-//       delete rSt;
-//       for(int itr = 0; itr< lt; itr++)
-//       {
-//         delete[] rPt[itr];
-//         delete[] rTt[itr];
-//       }
-//       delete[] rPt;
-//       delete[] rTt;
-//     }
-//     else {
-//       uint64_t *rSt = new uint64_t[lt];
-//       uint64_t **rPt = new uint64_t*[lt];
-//       uint64_t **rTt = new uint64_t*[lt];
-//       #pragma omp parallel num_threads(lt)
-//       {
-//         #pragma omp single 
-//         {
-//           for (int j = 0; j < lt; j++)
-//           {
-//             #pragma omp task firstprivate(j, lt)
-//             {
-//               int itr = dims + 2 * j;
-//               rSt[j] = 0;
-//               rPt[j] = new uint64_t[m];
-//               rTt[j] = new uint64_t[m];
-//               TwoMIN(j, S[itr], S[itr+1], pt[itr], pt[itr+1], St[itr], St[itr+1], rSt[j], rPt[j], rTt[j]);
-//               // cout<<itr<<","<<(itr+1)<<",";
-//               // PrintSKyline(j, rSt[j]);
-//             }
-//           }
-//           #pragma omp taskwait
-//         }  
-//       }
-//       SMIN_T(0, lt, rSt, rPt, rTt, rS, rP, rT);
-//       // cout<<"32 all:";
-//       // PrintSKyline(0, rS);
-//       delete rSt;
-//       for(int itr = 0; itr< lt; itr++)
-//       {
-//         delete[] rPt[itr];
-//         delete[] rTt[itr];
-//       }
-//       delete[] rPt;
-//       delete[] rTt;
-//     }
-//   }else {
-//     int lt = dimt / thr;
-//     uint64_t *rSt;
-//     uint64_t **rPt;
-//     uint64_t **rTt;
-//     if(dimt % thr == 0){
-//       rSt = new uint64_t[lt];
-//       rPt = new uint64_t*[lt];
-//       rTt = new uint64_t*[lt];
-//     }else {
-//       rSt = new uint64_t[lt+1];
-//       rPt = new uint64_t*[lt+1];
-//       rTt = new uint64_t*[lt+1];
-//     }
-//     for (int itr = 0; itr < lt; itr++)
-//     {
-//       rSt[itr] = 0;
-//       rPt[itr] = new uint64_t[m];
-//       rTt[itr] = new uint64_t[m];
-//       SMIN_T(thr*itr, thr*(itr+1), S, pt, St, rSt[itr], rPt[itr], rTt[itr]);
-//     }
-//     if(dimt % thr == 0){
-//       SMIN_T(0, lt, rSt, rPt, rTt, rS, rP, rT);
-//     } else {
-//       rSt[lt] = 0;
-//       rPt[lt] = new uint64_t[m];
-//       rTt[lt] = new uint64_t[m];
-//       SMIN_T(thr*lt, dime, S, pt, St, rSt[lt], rPt[lt], rTt[lt]);
-//       SMIN_T(0, lt+1, rSt, rPt, rTt, rS, rP, rT);
-//     }
-//     // cout<<"all:";
-//     // PrintSKyline(0, rS);
-//     delete rSt;
-//     for(int itr = 0; itr< lt; itr++)
-//     {
-//       delete[] rPt[itr];
-//       delete[] rTt[itr];
-//     }
-//     delete[] rPt;
-//     delete[] rTt;
-//   }
-// }
 
 void SMIN_T(int dims, int dime, uint64_t *S, uint64_t **pt, uint64_t **St, uint64_t &rS, uint64_t * &rP, uint64_t * &rT) {
   // [dims, dime)
@@ -4118,201 +2998,6 @@ void SDOMbyMin(int dimt, uint64_t Tmax, uint64_t *STmin, uint64_t **St, uint64_t
   delete[] T;
   delete[] res;
 }
-
-//old SDOM
-// void SDOMbyMin_T(int dimt, uint64_t Tmax, uint64_t *STmin, uint64_t **St, uint64_t Smin, uint64_t * &rS) {
-//   uint64_t *Sig = new uint64_t[dimt];
-//   uint64_t *Dlt = new uint64_t[dimt];
-//   uint64_t *Phi = new uint64_t[dimt];
-//   uint64_t *T = new uint64_t[dimt];
-//   uint64_t *res = new uint64_t[dimt];
-//   uint64_t SS_one = 0;
-//   // uint64_t SS_zero = 0;
-//   if (party == ALICE)
-//   {
-//     prg.random_data(&SS_one, sizeof(uint64_t));
-//     Iot[0]->send_data(&SS_one, sizeof(uint64_t));
-//     // Iot[1]->recv_data(&SS_zero, sizeof(uint64_t));
-//     // SS_zero = (0 - SS_zero) & mask;
-//   }
-//   else
-//   {
-//     // prg.random_data(&SS_zero, sizeof(uint64_t));
-//     Iot[0]->recv_data(&SS_one, sizeof(uint64_t));
-//     // Iot[1]->send_data(&SS_zero, sizeof(uint64_t));
-//     SS_one = (1 - SS_one) & mask;    
-//   }
-//   // uint64_t Fla = SS_zero;
-//   uint64_t Fla = 0;
-//   //Print S
-//   // if (party == ALICE)
-//   // {
-//   //   Iot[2]->send_data(rS, dimt * sizeof(uint64_t));
-//   // }
-//   // else
-//   // {
-//   //   uint64_t *STTT =  new uint64_t[dimt]; 
-//   //   Iot[2]->recv_data(STTT, dimt * sizeof(uint64_t));
-//   //   for (int i = 0; i < dimt; i++) {
-//   //     cout<< ((STTT[i] + rS[i]) & mask) << ",";
-//   //   }
-//   //   cout<<endl;
-//   //   delete[] STTT;
-//   // }
-//   // if (party == ALICE)
-//   // {
-//   //   Iot[0]->send_data(STmin, m * sizeof(uint64_t));
-//   //   Iot[1]->send_data(&Smin, sizeof(uint64_t));
-//   // }
-//   // else
-//   // {
-//   //   uint64_t *STminT =  new uint64_t[m];    
-//   //   Iot[0]->recv_data(STminT, m * sizeof(uint64_t));
-//   //   for (int i = 0; i < m; i++) {
-//   //     cout<< ((STminT[i] + STmin[i]) & mask) << ",";
-//   //   }
-//   //   cout<<endl;
-//   //   delete[] STminT;
-//   //   uint64_t SminT =  0; 
-//   //   Iot[1]->recv_data(&SminT, sizeof(uint64_t));
-//   //   cout<< ((Smin + SminT) & mask) << endl;
-//   // } 
-//   int thr = (dimt > THs) ? THs : dimt;
-//   #pragma omp parallel num_threads(thr)
-//   {
-//     #pragma omp single 
-//     {
-//       for (int itr = 0; itr < thr; itr++)
-//       {
-//         #pragma omp task firstprivate(itr, thr)
-//         {
-//           int lendt = (((dimt) * itr)/ thr);
-//           int lenut = ((dimt) * (itr + 1))/ thr;
-//           // int lendt = (((dimt - 1) * itr)/ thr) + 1;
-//           // int lenut = ((dimt - 1) * (itr + 1))/ thr;
-//           // if(itr == 0){
-//           //   lendt = 0;
-//           // }
-//           // int kk = lenut-lendt+1;
-//           int kk = lenut-lendt;
-//           // cout<<itr<<" "<<kk<<endl;
-//           uint64_t *in0 = new uint64_t[kk*(m+1)];
-//           uint64_t *in1 = new uint64_t[kk*(m+1)];
-//           uint64_t *in2 = new uint64_t[kk];
-//           uint64_t *in3 = new uint64_t[kk];
-//           uint64_t *sleq1 = new uint64_t[kk*(m+1)];
-//           uint64_t *sleq2 = new uint64_t[kk];
-//           for (int j = lendt; j < lenut; j++) {
-//           // for (int j = lendt; j <= lenut; j++) {
-//             in0[j-lendt] = Smin;
-//             in1[j-lendt] = rS[j];
-//             for (int k = 0; k < m; k++) {
-//               in0[(k+1)*kk+j-lendt] = St[j][k];
-//               in1[(k+1)*kk+j-lendt] = STmin[k];
-//             }
-//           }
-//           // memcpy(in1, rS+lendt, kk * sizeof(uint64_t));
-//           comparison_with_eq2N(kk*(m+1), in0, in1, sleq1, Auxt[itr]);
-//           memcpy(in2, sleq1+kk, kk * sizeof(uint64_t));
-//           memcpy(in3, sleq1+kk*2, kk * sizeof(uint64_t));
-//           Prod_H(kk, in2, in3, sleq2, Prodt[itr]);
-//           memcpy(Sig+lendt, sleq1, kk * sizeof(uint64_t));
-//           memcpy(Dlt+lendt, sleq2, kk * sizeof(uint64_t));
-//           // for (int j = lendt; j <= lenut; j++) {
-//           //   Sig[j] = sleq1[j-lendt];
-//           //   Dlt[j] = sleq2[j-lendt];
-//           // }
-//           delete[] in0;
-//           delete[] in1;
-//           delete[] in2;
-//           delete[] in3;
-//           delete[] sleq1;
-//           delete[] sleq2;
-//         }
-//       }
-//       #pragma omp taskwait
-//     }  
-//   } 
-//   uint64_t *in1 = new uint64_t[2];
-//   uint64_t *in2 = new uint64_t[2];
-//   uint64_t *in3 = new uint64_t[2];
-//   for (int j = 0; j < dimt; j++) {
-//     in1[0] = Sig[j] & mask;
-//     in1[1] = Dlt[j] & mask;
-//     in2[0] = (SS_one - Fla) & mask;
-//     in2[1] = (SS_one - Sig[j]) & mask;
-//     Prod_H(2, in1, in2, in3, Prodt[0]);//first = in3[0], Dom = in3[1];
-//     Fla = (Fla + in3[0]) & mask;
-//     Phi[j] = (in3[0] + in3[1]) & mask;
-//     T[j] = (Tmax - rS[j]) & mask;
-//   }
-//   // uint64_t *in0 = new uint64_t[dimt];
-//   // uint64_t *in1 = new uint64_t[dimt];
-//   // for (int j = 0; j < dimt; j++) {
-//   //   in0[j] = (SS_one - Sig[j]) & mask;
-//   //   T[j] = (Tmax - rS[j]) & mask;
-//   // }
-//   // Prod_H(dimt, Dlt, in0, in1, Prodt[0]);//Dom = in1;
-//   // uint64_t *in2 = new uint64_t[1];
-//   // uint64_t *in3 = new uint64_t[1];
-//   // uint64_t *in4 = new uint64_t[1];
-//   // for (int j = 0; j < dimt; j++) {
-//   //   in2[0] = Sig[j] & mask;
-//   //   in3[0] = (SS_one - Fla) & mask;
-//   //   Prod_H(1, in2, in3, in4, Prodt[0]);//first = in4[0];
-//   //   Fla = (Fla + in4[0]) & mask;
-//   //   Phi[j] = (in4[0] + in1[j]) & mask;
-//   // }
-//   // delete[] in0;
-//   // delete[] in4;
-//   //Print Phi
-//   // if (party == ALICE)
-//   // {
-//   //   Iot[0]->send_data(Phi, dimt * sizeof(uint64_t));
-//   //   Iot[1]->send_data(Sig, dimt * sizeof(uint64_t));
-//   //   Iot[2]->send_data(Dlt, dimt * sizeof(uint64_t));
-//   //   // Iot[0]->send_data(&Tmax, sizeof(uint64_t));
-//   // }
-//   // else
-//   // {
-//   //   uint64_t *PhiT =  new uint64_t[dimt]; 
-//   //   uint64_t *SigT =  new uint64_t[dimt]; 
-//   //   uint64_t *DltT =  new uint64_t[dimt]; 
-//   //   // uint64_t TmaxT =  0; 
-//   //   Iot[0]->recv_data(PhiT, dimt * sizeof(uint64_t));
-//   //   Iot[1]->recv_data(SigT, dimt * sizeof(uint64_t));
-//   //   Iot[2]->recv_data(DltT, dimt * sizeof(uint64_t));
-//   //   for (int i = 0; i < dimt; i++) {
-//   //     cout<< ((PhiT[i] + Phi[i]) & mask) << ",";
-//   //   }
-//   //   cout<<endl;
-//   //   for (int i = 0; i < dimt; i++) {
-//   //     cout<< ((SigT[i] + Sig[i]) & mask) << ",";
-//   //   }
-//   //   cout<<endl;
-//   //   for (int i = 0; i < dimt; i++) {
-//   //     cout<< ((DltT[i] + Dlt[i]) & mask) << ",";
-//   //   }
-//   //   cout<<endl;
-//   //   delete[] PhiT;
-//   //   delete[] SigT;
-//   //   delete[] DltT;
-//   //   // Iot[0]->recv_data(&TmaxT, sizeof(uint64_t));
-//   //   // cout<< ((Tmax + TmaxT) & mask) << endl;
-//   // }
-//   Prod_H(dimt, T, Phi, res, Prodt[0]);
-//   for (int j = 0; j < dimt; j++) {
-//     rS[j] = (rS[j] + res[j]) & mask;
-//   }
-//   delete[] in1;
-//   delete[] in2;
-//   delete[] in3;
-//   delete[] Sig;
-//   delete[] Dlt;
-//   delete[] Phi;
-//   delete[] T;
-//   delete[] res;
-// }
 
 void SDOMbyMin_T(int dimt, uint64_t Tmax, uint64_t *STmin, uint64_t **St, uint64_t Smin, uint64_t * &rS) {
   uint64_t *Sig = new uint64_t[dimt];
@@ -5156,648 +3841,6 @@ uint64_t *SkylineResbyQ0(vector<uint32_t> Q, uint32_t &reslen)
   return resD;
 }
 
-uint64_t *SkylineResbyQ_old(vector<uint32_t> Q, uint32_t &reslen)
-{
-  int polylen = 10;
-  int len1 = SS_G[0][0];
-  int len2 = SS_G[0][1];
-  int len1t = len1 + 1;
-  int len2t = len2 + 1;
-  SS_L = new int[len1 * len2];
-  SS_Skyline = new uint64_t*[len1 * len2];
-  for (int k1 = 0; k1 <= len1 - 1; k1++)
-  {
-    for (int k2 = len2 - 1; k2 >= 0; k2--)
-    {
-      SS_L[k1 * len2 + k2] = SS_L_itr[k1 * len2t + k2];
-      SS_Skyline[k1 * len2 + k2] = new uint64_t[SS_L_itr[k1 * len2t + k2]];
-      memcpy(SS_Skyline[k1 * len2 + k2], SS_Skyline_itr[k1 * len2t + k2], SS_L_itr[k1 * len2t + k2] * sizeof(uint64_t));
-    }
-  }
-  uint64_t *a = new uint64_t[len1 * polylen];
-  prg.random_data(a, len1 * polylen * sizeof(uint64_t));
-  // uint64_t *a = new uint64_t[len1];
-  // uint64_t *b = new uint64_t[len1];
-  // prg.random_data(a, len1 * sizeof(uint64_t));
-  // prg.random_data(b, len1 * sizeof(uint64_t));
-  uint64_t *b = new uint64_t[polylen];
-  prg.random_data(b, polylen * sizeof(uint64_t));
-  // uint64_t a2 = 0;
-  // uint64_t b2 = 0;
-  // prg.random_data(&a2, sizeof(uint64_t));
-  // prg.random_data(&b2, sizeof(uint64_t));
-  // dummy element
-  double startd = omp_get_wtime();
-  cout << "dummy element" << endl;
-  int len = 0;
-  #pragma omp parallel for reduction(max:len)
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      if (len < SS_L[(k1 * len2) + k2])
-        len = SS_L[(k1 * len2) + k2];
-    }
-  }
-  cout << "len:"<< len << endl;
-  uint64_t SS_one = 0, SS_zero = 0;
-  if (party == ALICE)
-  {
-    prg.random_data(&SS_one, sizeof(uint64_t));
-    Iot[0]->send_data(&SS_one, sizeof(uint64_t));
-    prg.random_data(&SS_zero, sizeof(uint64_t));
-    Iot[1]->send_data(&SS_zero, sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(&SS_one, sizeof(uint64_t));
-    SS_one = (1 - SS_one) & mask;
-    Iot[1]->recv_data(&SS_zero, sizeof(uint64_t));
-    SS_zero = (0 - SS_zero) & mask;
-  }
-  uint64_t TMAX = (10000 << MAX) + 10000;
-  // uint64_t STMAX = 1ULL << (2 * MAX + 1);
-  uint64_t STMAX = 2 * 10000 * 10000;
-  if (party == ALICE)
-  {
-    uint64_t T0 = 0;
-    prg.random_data(&T0, sizeof(uint64_t));
-    TMAX = (TMAX - T0) & mask;
-    Iot[0]->send_data(&T0, sizeof(uint64_t));
-    prg.random_data(&T0, sizeof(uint64_t));
-    STMAX = (STMAX - T0) & mask;
-    Iot[1]->send_data(&T0, sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(&TMAX, sizeof(uint64_t));
-    Iot[1]->recv_data(&STMAX, sizeof(uint64_t)); 
-  }    
-
-  // int skylineLen = SS_L[(4000 * SS_G[0][1]) + 2366];
-  // uint64_t *ssss = new uint64_t[skylineLen];
-  // copy(SS_Skyline[(4000 * SS_G[0][1]) + 2366], SS_Skyline[(4000 * SS_G[0][1]) + 2366] + skylineLen, ssss);
-  // SS_Print(skylineLen, ssss);
-
-  #pragma omp parallel for
-  for (int k2 = len2 - 1; k2 >= 0; k2--)
-  {
-    for (int k1 = 0; k1 < len1; k1++)
-    {
-      uint64_t *tmp0 = new uint64_t[len];
-      int slen = SS_L[(k1 * len2) + k2];
-      if (len == slen)
-        continue;
-      memcpy(tmp0, SS_Skyline[(k1 * len2) + k2], slen * sizeof(uint64_t));
-      for (int k = slen; k < len; k++)
-      {
-        // if (party == ALICE)
-        // {
-        //   prg.random_data(&SS_zero, sizeof(uint64_t));
-        //   Iot[0]->send_data(&SS_zero, sizeof(uint64_t));
-        //   tmp0[k] = SS_zero;
-        // }
-        // else
-        // {
-        //   Iot[0]->recv_data(&SS_zero, sizeof(uint64_t));
-        //   tmp0[k] = (0 - SS_zero) & mask;
-        // }
-        tmp0[k] = TMAX;
-        // tmp0[k] = SS_zero;
-      }
-      delete[] SS_Skyline[(k1 * len2) + k2];
-      SS_Skyline[(k1 * len2) + k2] = new uint64_t[len];
-      memcpy(SS_Skyline[(k1 * len2) + k2], tmp0, len * sizeof(uint64_t));
-      delete[] tmp0;
-    }
-  }
-  
-  // uint64_t *ss = new uint64_t[len];
-  // copy(SS_Skyline[(4000 * SS_G[0][1]) + 2366], SS_Skyline[(4000 * SS_G[0][1]) + 2366] + len, ss);
-  // SS_Print(len, ss);
-
-  double endd = omp_get_wtime();
-  ss_dummy = endd - startd;
-  cout << ss_dummy << " s" << endl;
-  uint64_t comm_1 = 0;
-  for(int j = 0; j< THs; j++){
-    comm_1+=Iot[j]->counter;
-  }
-  double startm = omp_get_wtime();
-  cout << "mask element" << endl;
-  // m+a*i+b
-  #pragma omp parallel for
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      // construct the same skyline
-      // int slen = SS_L[(k1<<MAX)+k2];
-      // uint64_t offset = a[k1][0] + a[k1][1]* k2 ; // a*j+b
-      // uint64_t offset = 0;
-      // Poly(polylen, a[k1], k2, offset);
-      uint64_t offset = a[k1 * polylen];
-      uint64_t t = k2;
-      for (int i = 1; i < polylen; i++)
-      {
-        offset = (offset + a[k1 * polylen + i] * t) & mask;
-        t = (t * k2) & mask;
-      }
-      // int lent = SS_L[(k1 * len2) + k2];
-      // for (int k = 0; k < lent; k++)
-      // {
-      //   SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + offset) & mask;
-      // }
-      for (int k = 0; k < len; k++)
-      {
-        SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + offset) & mask;
-      }
-    }
-  }
-  #pragma omp parallel num_threads(THs)
-  {
-    #pragma omp single 
-    {
-      for (int itr = 0; itr < THs; itr++)
-      {
-        #pragma omp task firstprivate(itr, THs, SS_L)
-        {
-          int lendt = (((len1 - 1) * itr)/ THs) + 1;
-          int lenut = ((len1 - 1) * (itr + 1))/ THs;
-          if(itr == 0){
-            lendt = 0;
-          }
-          for (int k1 = lendt; k1 <= lenut; k1++)
-          {
-            for (int k2 = 0; k2 < len2; k2++)
-            {
-              // int lent = SS_L[(k1 * len2) + k2];
-              uint64_t *tmp1 = new uint64_t[len];
-              if (party == ALICE)
-              {
-                Iot[itr]->send_data(SS_Skyline[(k1 * len2) + k2], len * sizeof(uint64_t));
-                Iot[itr]->recv_data(tmp1, len * sizeof(uint64_t));
-              }
-              else
-              {
-                Iot[itr]->recv_data(tmp1, len * sizeof(uint64_t));
-                Iot[itr]->send_data(SS_Skyline[(k1 * len2) + k2], len * sizeof(uint64_t));
-              }
-              for (int k = 0; k < len; k++)
-              {
-                SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + tmp1[k]) & mask;
-              }
-              delete[] tmp1;
-            }
-          }
-        }
-      }
-      #pragma omp taskwait
-    }  
-  }
-  
-  double endm = omp_get_wtime();
-  ss_mask = endm - startm;
-  cout << ss_mask << " s" << endl;
-  uint64_t comm_2 = 0;
-  for(int j = 0; j< THs; j++){
-    comm_2+=Iot[j]->counter;
-  }
-  com1 = comm_2-comm_1;
-  cout << "select element" << endl;
-  // select
-  uint64_t *res = new uint64_t[len]();
-  uint64_t *inA = new uint64_t[m];
-  uint64_t *inB = new uint64_t[m];
-  uint64_t *outC = new uint64_t[m];
-  uint64_t *JT = new uint64_t[len1 * polylen];
-  uint64_t *IT = new uint64_t[polylen];
-  uint32_t *pos = new uint32_t[m];
-  unordered_map<uint32_t, uint32_t *> posindex;
-  uint64_t *tmp2 = new uint64_t[len1 * len];
-  uint64_t *tmpt = new uint64_t[len1 * len];
-  uint64_t *outD0 = new uint64_t[len1 * polylen];
-  uint64_t *outD = new uint64_t[polylen];
-
-  uint64_t *qt = new uint64_t[m];
-  // qt[0] = SS_G[1][k1 - 1];
-  // qt[1] = SS_G[2][k2 - 1];
-  for (int j = 0; j < m; j++) {
-    qt[j] =  Q[j] & mask; 
-  }
-  int lt = len;
-  uint64_t *S = new uint64_t[lt];
-  uint64_t **St = new uint64_t*[lt];
-  uint64_t *in1 = new uint64_t[lt*m];
-  uint64_t *out1 = new uint64_t[lt*m];
-  uint64_t **pt = new uint64_t*[lt];
-  uint64_t *Bt = new uint64_t[lt];
-  uint64_t *Rt = new uint64_t[lt*m];
-  uint64_t *Pmin = new uint64_t[m];
-  uint64_t *Tmin = new uint64_t[m];
-  unordered_map<uint32_t, uint64_t *> Result;
-  double starts = omp_get_wtime();
-  PosIndex(Q, SS_G, pos, posindex);
-  // double endscmp = omp_get_wtime();
-  // cout << "select element cmp:" << (endscmp-starts) << endl;
-  // JT[0] = SS_one;
-  // JT[1] = pos[1];
-  double startpoly = omp_get_wtime();
-  for (int j = 0; j < len1; j++)
-  {
-    JT[j * polylen + 0] = SS_one;
-    JT[j * polylen + 1] = pos[1];
-  }
-  IT[0] = SS_one;
-  IT[1] = pos[0];
-  for (int i = 2; i < polylen; i++)
-  {
-    inA[0] = JT[i/2];
-    inB[0] = JT[i - i/2];
-    inA[1] = IT[i/2];
-    inB[1] = IT[i - i/2];
-    Prod_H(m, inA, inB, outC, Prodt[0]);
-    // JT[i] = outC[0];
-    IT[i] = outC[1];
-    for (int j = 0; j < len1; j++)
-    {
-      JT[j * polylen + i] = outC[0];
-    } 
-  }
-  memset(tmp2, 0, (len1 * len) * sizeof(uint64_t));
-  Prod_H(len1 * polylen, a, JT, outD0, Prodt[0]);
-  double endspoly = omp_get_wtime();
-  cout << "select element poly:" << (endspoly-startpoly) << endl;
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      // select
-      uint64_t pindx = posindex[1][k2];
-      uint64_t* skl_ = SS_Skyline[(k1 * len2) + k2];
-      // #pragma omp simd
-      for (int k = 0; k < len; k++)
-      {
-        tmp2[k1 * len + k] += (skl_[k] * pindx)/* & mask */;
-      }
-    }
-    //polynomial
-    // uint64_t mk1 = 0;
-    // for (int k = 0; k < polylen; k++)
-    // {
-    //   mk1 = (mk1 + outD0[k1 * polylen + k]) & mask;
-    // }
-    // uint64_t offset = (b[0] - mk1) & mask;
-    // uint64_t t = k1;
-    // for (int i = 1; i < polylen; i++)
-    // {
-    //   offset = (offset + b[i] * t) & mask;
-    //   t = (t * k1) & mask;
-    // } 
-    uint64_t offset = 0;
-    uint64_t t = 1;
-    for (int k = 0; k < polylen; k++)
-    {
-      offset += b[k] * t - outD0[k1 * polylen + k];
-      t = (t * k1) & mask;
-    } 
-    for (int k = 0; k < len; k++)
-    {
-      tmp2[k1* len + k] = (tmp2[k1 * len + k] + offset) & mask; //(m+a[k1]*j+b[k1]) + a2*i+b2 - a[k1]*j-b[k1]
-    }
-  }
-  // double endsaggr = omp_get_wtime();
-  // cout << "select element aggr:" << (endsaggr-endspoly) << endl;
-  if (party == ALICE)
-  {
-    Iot[0]->send_data(tmp2, len1 * len * sizeof(uint64_t));
-    Iot[1]->recv_data(tmpt, len1 * len * sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(tmpt, len1 * len * sizeof(uint64_t));
-    Iot[1]->send_data(tmp2, len1 * len * sizeof(uint64_t));
-  }
-  for (int k = 0; k < len; k++)
-  {
-    for (int k1 = 0; k1 < len1; k1++)
-    {
-      res[k] = (res[k] + (tmpt[k1 * len + k] + tmp2[k1 * len + k]) * posindex[0][k1]) & mask;
-    }
-  }
-  // double endsaggr2 = omp_get_wtime();
-  // cout << "select element aggr2:" << (endsaggr2-endsaggr) << endl;
-  //a2*pos[0]+b2
-  uint64_t mk2 = 0;
-  Prod_H(polylen, b, IT, outD, Prodt[0]);
-  for (int k = 0; k < polylen; k++)
-  {
-    // mk2 = (mk2 + outD[k]) & mask;
-      mk2 += outD[k];
-  }
-  for (int k = 0; k < len; k++)
-  {
-    res[k] = (res[k] - mk2) & mask; //(m+a2*i+b2) - a2*i+b2
-  }
-  double endqua = omp_get_wtime();
-  // SS_Print(len, res);
-  cout << "select element quasky:" << (endqua - starts) << endl;
-  // select dynamic skyline == res->result
-  int th = 0;
-  // dynamic points
-  // DP(len, res, qt, lenD, resD);
-  // if (party == ALICE)
-  // {
-  //   Iot[th]->send_data(pos, m * sizeof(uint32_t));   
-  //   uint32_t *pos0 = new uint32_t[m];
-  //   Iot[th]->recv_data(pos0, m * sizeof(uint32_t));
-  //   for (int i = 0; i < m; i++)
-  //   {
-  //     pos0[i] = (pos0[i] + pos[i]) & mask;
-  //   }
-  //   cout<<pos0[0]<<"\t"<<pos0[1]<<"\t"<<lt<<endl;  
-  //   delete[] pos0;
-  // }
-  // else
-  // {
-  //   uint32_t *pos0 = new uint32_t[m];
-  //   Iot[th]->recv_data(pos0, m * sizeof(uint32_t));
-  //   for (int i = 0; i < m; i++)
-  //   {
-  //     pos0[i] = (pos0[i] + pos[i]) & mask;
-  //   }
-  //   Iot[th]->send_data(pos, m * sizeof(uint32_t)); 
-  //   cout<<pos0[0]<<"\t"<<pos0[1]<<"\t"<<lt<<endl;  
-  //   delete[] pos0;   
-  // }
-  // double xx1 = omp_get_wtime();
-  prg.random_data(Rt, lt*m*sizeof(uint64_t));
-  //separate each dimension from "<<MAX"
-  if (party == ALICE)
-  {
-    uint64_t masktt = (1ULL << (MAX-2)) - 1;
-    for (int j = 0; j < lt*m; j++)
-    {
-      Rt[j] = Rt[j] & masktt;
-    }
-    for (int i = 0; i < lt; i++)
-    {
-      Bt[i] = (res[i] + (Rt[i] << MAX) + Rt[i+lt]) & mask;
-    }
-    Iot[th]->send_data(Bt, lt * sizeof(uint64_t));
-    uint64_t *Rt0 = new uint64_t[lt*m];
-    Iot[th]->recv_data(Rt0, lt*m*sizeof(uint64_t));
-    for (int i = 0; i < lt; i++)
-    {
-      pt[i] = new uint64_t[m];
-      for (int j = 0; j < m; j++)
-      {
-        pt[i][j] = (Rt0[j*lt+i] - Rt[j*lt+i]) & mask;
-      } 
-      // pt[i][0] = (pt[i][0] - Rt[i]- (Rt[lt+i]-Rt[lt+i]%((1ULL << MAX) ))/(1ULL << MAX)) & mask;
-      // pt[i][1] = (pt[i][1] - Rt[lt+i]%((1ULL << MAX) )) & mask;
-    }
-    delete[] Rt0;
-  }
-  else
-  {
-    Iot[th]->recv_data(Bt, lt * sizeof(uint64_t));
-    for (int i = 0; i < lt; i++)
-    {
-      Bt[i] = (Bt[i] + res[i]) & mask;
-    }
-    uint64_t *s = new uint64_t[m];
-    uint64_t masktt = (1ULL << MAX) - 1;
-    for (int i = 0; i < lt; i++)
-    {
-      pt[i] = new uint64_t[m];
-      s[0] = Bt[i] & masktt;
-      for (int j = 1; j < m; j++)
-      {
-        Bt[i] = (Bt[i] - s[j - 1]) >> MAX;
-        s[j] = Bt[i] & masktt;
-      }
-      for (int j = 0; j < m; j++)
-      {
-        pt[i][j] = (s[m-1-j] - Rt[j*lt+i]) & mask;
-        // x[j*lt+i] = pt[i][j] & mask;
-      } 
-    }
-    delete[] s;
-    Iot[th]->send_data(Rt, lt*m*sizeof(uint64_t));   
-  }
-  //Euclid product
-  for (int i = 0; i < lt; i++) {
-    for (int j = 0; j < m; j++) {
-      in1[i*m+j] = (pt[i][j] - qt[j]) & mask; 
-    }
-  }
-  Prod_H(lt*m, in1, in1, out1, Prodt[th]);
-  // double xx2 = omp_get_wtime();
-  // cout << "dy element euclid:" << (xx2 - xx1) << endl;
-  for (int i = 0; i < lt; i++) {
-    S[i] = 0;
-    St[i] = new uint64_t[m];
-    for (int j = 0; j < m; j++) {
-      St[i][j] = out1[i*m+j] & mask;
-      S[i] = (S[i] + out1[i*m+j]) & mask;  
-    }
-  }
-   //  Print S
-  // if (party == ALICE)
-  // {
-  //   Iot[th]->send_data(S, lt * sizeof(uint64_t));
-  // }
-  // else
-  // {
-  //   uint64_t *STTT =  new uint64_t[lt]; 
-  //   Iot[th]->recv_data(STTT, lt * sizeof(uint64_t));
-  //   for (int i = 0; i < lt; i++) {
-  //     cout<< ((STTT[i] + S[i]) & mask) << ",";
-  //   }
-  //   cout<<endl;
-  //   delete[] STTT;
-  // }    
-
-  uint64_t lam = 1;  
-  double xx3 = omp_get_wtime();
-  // cout << "dy element St:" << (xx3 - xx2) << endl; 
-  uint64_t *r = new uint64_t[1];
-  uint64_t *in2 = new uint64_t[1];
-  uint64_t *out2 = new uint64_t[1];
-  while(lam!=0){
-    uint64_t STMin = 0;
-    // double tt1 = omp_get_wtime();
-    SMIN(0, lt, S, pt, St, STMin, Pmin, Tmin);
-    // double tt2 = omp_get_wtime();
-    // cout << "loop element Smin:" << (tt2 - tt1) << endl; 
-    prg.random_data(r, sizeof(uint64_t));
-    in2[0] = (STMAX - STMin) & mask;
-    Prod_H(1, in2, r, out2, Prodt[th]);
-    if (party == ALICE)
-    {
-      Iot[th]->recv_data(&lam, sizeof(uint64_t)); 
-      Iot[th+1]->send_data(out2, sizeof(uint64_t));
-      lam = (lam + out2[0]) & mask;
-    }
-    else
-    {
-      Iot[th]->send_data(out2, sizeof(uint64_t));
-      Iot[th+1]->recv_data(&lam, sizeof(uint64_t)); 
-      lam = (lam + out2[0]) & mask;
-    }
-    // cout<<"lam:"<<lam<<endl;
-    // if (party == ALICE)
-    // {
-    //   Iot[th]->recv_data(out2, sizeof(uint64_t)); 
-    //   Iot[th+1]->send_data(&STMin, sizeof(uint64_t));
-    //   cout<<"SMIN:"<<((STMin + out2[0]) & mask)<<endl;
-    // }
-    // else
-    // {
-    //   Iot[th]->send_data(&STMin, sizeof(uint64_t));
-    //   Iot[th+1]->recv_data(out2, sizeof(uint64_t)); 
-    //   cout<<"SMIN:"<<((STMin + out2[0]) & mask)<<endl;
-    // }
-    
-    // double tt3 = omp_get_wtime();
-    // cout << "loop element break:" << (tt3 - tt2) << endl;
-    if(lam!=0){
-      int pos = Result.size();
-      // cout<<pos<<endl;
-      Result[pos] = new uint64_t[m];
-      // for (int i = 0; i < m; i++)
-      // {
-      //   Result[pos][i] = Pmin[i];
-      // }
-      memcpy(Result[pos], Pmin, m * sizeof(uint64_t));
-      // Result[pos] = Pmin;
-      // cout<<Pmin[0]<<","<<Result[pos][0]<<endl;
-      // if (party == ALICE)
-      // {
-      //   Iot[th]->recv_data(out2, sizeof(uint64_t)); 
-      //   Iot[th+1]->send_data(&Pmin[0], sizeof(uint64_t));
-      //   cout<<"PMIN:"<<((Pmin[0] + out2[0]) & mask);
-      //   Iot[th]->recv_data(out2, sizeof(uint64_t)); 
-      //   Iot[th+1]->send_data(&Pmin[1], sizeof(uint64_t));
-      //   cout<<","<<((Pmin[1] + out2[0]) & mask)<<endl;
-      // }
-      // else
-      // {
-      //   Iot[th]->send_data(&Pmin[0], sizeof(uint64_t));
-      //   Iot[th+1]->recv_data(out2, sizeof(uint64_t)); 
-      //   cout<<"PMIN:"<<((Pmin[0] + out2[0]) & mask);
-      //   Iot[th]->send_data(&Pmin[1], sizeof(uint64_t));
-      //   Iot[th+1]->recv_data(out2, sizeof(uint64_t)); 
-      //   cout<<","<<((Pmin[1] + out2[0]) & mask)<<endl;
-      // }
-      //eliminate
-      SDOMbyMin(lt, STMAX, Tmin, St, STMin, S);
-      //Print S
-      // if (party == ALICE)
-      // {
-      //   Iot[th]->send_data(S, lt * sizeof(uint64_t));
-      // }
-      // else
-      // {
-      //   uint64_t *STTT =  new uint64_t[lt]; 
-      //   Iot[th]->recv_data(STTT, lt * sizeof(uint64_t));
-      //   for (int i = 0; i < lt; i++) {
-      //     cout<< ((STTT[i] + S[i]) & mask) << ",";
-      //   }
-      //   cout<<endl;
-      //   delete[] STTT;
-      // }  
-    }
-    // double tt4 = omp_get_wtime();
-    // cout << "loop element filter:" << (tt4 - tt3) << endl;
-  }
-  double xx4 = omp_get_wtime();
-  cout << "dy element loop:" << (xx4 - xx3) << endl;
-  // Return
-  // A
-  int lenD = Result.size();
-  uint64_t *resD = new uint64_t[lenD*m];
-  for (int i = 0; i < lenD; i++)
-  {
-    for (int j = 0; j < m; j++)
-    {
-      resD[i*m+j] = Result[i][j];
-    }
-    // cout<<i<<":"<<Result[i][0]<<","<<resD[i*m+0]<<endl;
-  }
-  reslen = lenD;
-  double ends = omp_get_wtime();
-  ss_select = ends - starts;
-  cout << ss_select << " s" << endl;
-  uint64_t comm_3 = 0;
-  for(int j = 0; j< THs; j++){
-    comm_3+=Iot[j]->counter;
-  }
-  com2 = comm_3-comm_2;
-  cout<<lenD<<endl;
-  if (party == ALICE)
-  {
-    Iot[th]->send_data(resD, lenD*m * sizeof(uint64_t));
-    uint64_t *STTT =  new uint64_t[lenD*m]; 
-    Iot[th]->recv_data(STTT, lenD*m * sizeof(uint64_t));
-    for (int i = 0; i < lenD; i++) {
-      cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
-    }
-    delete[] STTT;
-  }
-  else
-  {
-    uint64_t *STTT =  new uint64_t[lenD*m]; 
-    Iot[th]->recv_data(STTT, lenD*m * sizeof(uint64_t));
-    Iot[th]->send_data(resD, lenD*m * sizeof(uint64_t));
-    for (int i = 0; i < lenD; i++) {
-      cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
-    }
-    delete[] STTT;
-  }
-  delete[] r;
-  delete[] in2;
-  delete[] out2;
-  delete[] Tmin;
-  delete[] Pmin;
-  delete[] Bt;
-  delete[] Rt;
-  for(int j = 0; j< lt; j++)
-  {
-    delete[] St[j];
-    delete[] pt[j];
-  }
-  delete[] St;
-  delete[] pt;
-  delete[] in1;
-  delete[] out1;
-  delete[] qt;
-  delete[] a;
-  delete[] b;
-  delete[] JT;
-  delete[] IT;
-  delete[] inA;
-  delete[] inB;
-  delete[] outC;
-  delete[] outD;
-  delete[] outD0;
-  delete[] tmpt;
-  delete[] tmp2;
-  delete[] pos;
-  for (int k = 0; k < m; k++)
-  {
-    delete[] posindex[k];
-  }
-  posindex.clear();
-  for (int k = 0; k < lenD; k++)
-  {
-    delete[] Result[k];
-  }
-  Result.clear();
-  return resD;
-}
-
 uint64_t *SkylineResbyQ(vector<uint32_t> Q, uint32_t &reslen)
 {
   int polylen = 2;
@@ -6458,685 +4501,6 @@ uint64_t *SkylineResbyQ(vector<uint32_t> Q, uint32_t &reslen)
   delete[] outD;
   delete[] outD0;
   delete[] rp2;
-  delete[] tmpt;
-  delete[] tmp2;
-  delete[] pos;
-  for (int k = 0; k < m; k++)
-  {
-    delete[] posindex[k];
-  }
-  posindex.clear();
-  for (int k = 0; k < lenD; k++)
-  {
-    delete[] Result[k];
-  }
-  Result.clear();
-  return resD;
-}
-
-uint64_t *SkylineResbyQ_T_old(vector<uint32_t> Q, uint32_t &reslen)
-{
-  int polylen = 10;
-  int len1 = SS_G[0][0];
-  int len2 = SS_G[0][1];
-  int len1t = len1 + 1;
-  int len2t = len2 + 1;
-  SS_L = new int[len1 * len2];
-  SS_Skyline = new uint64_t*[len1 * len2];
-  for (int k1 = 0; k1 <= len1 - 1; k1++)
-  {
-    for (int k2 = len2 - 1; k2 >= 0; k2--)
-    {
-      SS_L[k1 * len2 + k2] = SS_L_itr[k1 * len2t + k2];
-      SS_Skyline[k1 * len2 + k2] = new uint64_t[SS_L_itr[k1 * len2t + k2]];
-      memcpy(SS_Skyline[k1 * len2 + k2], SS_Skyline_itr[k1 * len2t + k2], SS_L_itr[k1 * len2t + k2] * sizeof(uint64_t));
-    }
-  }
-  uint64_t *a = new uint64_t[len1 * polylen];
-  prg.random_data(a, len1 * polylen * sizeof(uint64_t));
-  // uint64_t *a = new uint64_t[len1];
-  // uint64_t *b = new uint64_t[len1];
-  // prg.random_data(a, len1 * sizeof(uint64_t));
-  // prg.random_data(b, len1 * sizeof(uint64_t));
-  uint64_t *b = new uint64_t[polylen];
-  prg.random_data(b, polylen * sizeof(uint64_t));
-  // uint64_t a2 = 0;
-  // uint64_t b2 = 0;
-  // prg.random_data(&a2, sizeof(uint64_t));
-  // prg.random_data(&b2, sizeof(uint64_t));
-  // dummy element
-  double startd = omp_get_wtime();
-  cout << "dummy element" << endl;
-  int len = 0;
-  #pragma omp parallel for reduction(max:len)
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      if (len < SS_L[(k1 * len2) + k2])
-        len = SS_L[(k1 * len2) + k2];
-    }
-  }
-  cout << "len:"<< len << endl;
-  uint64_t SS_one = 0, SS_zero = 0;
-  if (party == ALICE)
-  {
-    prg.random_data(&SS_one, sizeof(uint64_t));
-    Iot[0]->send_data(&SS_one, sizeof(uint64_t));
-    prg.random_data(&SS_zero, sizeof(uint64_t));
-    Iot[1]->send_data(&SS_zero, sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(&SS_one, sizeof(uint64_t));
-    SS_one = (1 - SS_one) & mask;
-    Iot[1]->recv_data(&SS_zero, sizeof(uint64_t));
-    SS_zero = (0 - SS_zero) & mask;
-  }
-  uint64_t TMAX = (10000 << MAX) + 10000;
-  // uint64_t STMAX = 1ULL << (2 * MAX + 1);
-  uint64_t STMAX = 2 * 10000 * 10000;
-  if (party == ALICE)
-  {
-    uint64_t T0 = 0;
-    prg.random_data(&T0, sizeof(uint64_t));
-    TMAX = (TMAX - T0) & mask;
-    Iot[0]->send_data(&T0, sizeof(uint64_t));
-    prg.random_data(&T0, sizeof(uint64_t));
-    STMAX = (STMAX - T0) & mask;
-    Iot[1]->send_data(&T0, sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(&TMAX, sizeof(uint64_t));
-    Iot[1]->recv_data(&STMAX, sizeof(uint64_t)); 
-  }    
-
-  // int skylineLen = SS_L[(4000 * SS_G[0][1]) + 2366];
-  // uint64_t *ssss = new uint64_t[skylineLen];
-  // copy(SS_Skyline[(4000 * SS_G[0][1]) + 2366], SS_Skyline[(4000 * SS_G[0][1]) + 2366] + skylineLen, ssss);
-  // SS_Print(skylineLen, ssss);
-
-  #pragma omp parallel for
-  for (int k2 = len2 - 1; k2 >= 0; k2--)
-  {
-    for (int k1 = 0; k1 < len1; k1++)
-    {
-      uint64_t *tmp0 = new uint64_t[len];
-      int slen = SS_L[(k1 * len2) + k2];
-      if (len == slen)
-        continue;
-      memcpy(tmp0, SS_Skyline[(k1 * len2) + k2], slen * sizeof(uint64_t));
-      for (int k = slen; k < len; k++)
-      {
-        // if (party == ALICE)
-        // {
-        //   prg.random_data(&SS_zero, sizeof(uint64_t));
-        //   Iot[0]->send_data(&SS_zero, sizeof(uint64_t));
-        //   tmp0[k] = SS_zero;
-        // }
-        // else
-        // {
-        //   Iot[0]->recv_data(&SS_zero, sizeof(uint64_t));
-        //   tmp0[k] = (0 - SS_zero) & mask;
-        // }
-        tmp0[k] = TMAX;
-        // tmp0[k] = SS_zero;
-      }
-      delete[] SS_Skyline[(k1 * len2) + k2];
-      SS_Skyline[(k1 * len2) + k2] = new uint64_t[len];
-      memcpy(SS_Skyline[(k1 * len2) + k2], tmp0, len * sizeof(uint64_t));
-      delete[] tmp0;
-    }
-  }
-  
-  // uint64_t *ss = new uint64_t[len];
-  // copy(SS_Skyline[(4000 * SS_G[0][1]) + 2366], SS_Skyline[(4000 * SS_G[0][1]) + 2366] + len, ss);
-  // SS_Print(len, ss);
-
-  double endd = omp_get_wtime();
-  ss_dummy = endd - startd;
-  cout << ss_dummy << " s" << endl;
-  uint64_t comm_1 = 0;
-  for(int j = 0; j< THs; j++){
-    comm_1+=Iot[j]->counter;
-  }
-  double startm = omp_get_wtime();
-  cout << "mask element" << endl;
-  // m+a*i+b
-  #pragma omp parallel for
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      // construct the same skyline
-      // int slen = SS_L[(k1<<MAX)+k2];
-      // uint64_t offset = a[k1][0] + a[k1][1]* k2 ; // a*j+b
-      // uint64_t offset = 0;
-      // Poly(polylen, a[k1], k2, offset);
-      uint64_t offset = a[k1 * polylen];
-      uint64_t t = k2;
-      for (int i = 1; i < polylen; i++)
-      {
-        offset = (offset + a[k1 * polylen + i] * t) & mask;
-        t = (t * k2) & mask;
-      }
-      // int lent = SS_L[(k1 * len2) + k2];
-      // for (int k = 0; k < lent; k++)
-      // {
-      //   SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + offset) & mask;
-      // }
-      for (int k = 0; k < len; k++)
-      {
-        SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + offset) & mask;
-      }
-    }
-  }
-  #pragma omp parallel num_threads(THs)
-  {
-    #pragma omp single 
-    {
-      for (int itr = 0; itr < THs; itr++)
-      {
-        #pragma omp task firstprivate(itr, THs, SS_L)
-        {
-          int lendt = (((len1 - 1) * itr)/ THs) + 1;
-          int lenut = ((len1 - 1) * (itr + 1))/ THs;
-          if(itr == 0){
-            lendt = 0;
-          }
-          for (int k1 = lendt; k1 <= lenut; k1++)
-          {
-            for (int k2 = 0; k2 < len2; k2++)
-            {
-              // int lent = SS_L[(k1 * len2) + k2];
-              uint64_t *tmp1 = new uint64_t[len];
-              if (party == ALICE)
-              {
-                Iot[itr]->send_data(SS_Skyline[(k1 * len2) + k2], len * sizeof(uint64_t));
-                Iot[itr]->recv_data(tmp1, len * sizeof(uint64_t));
-              }
-              else
-              {
-                Iot[itr]->recv_data(tmp1, len * sizeof(uint64_t));
-                Iot[itr]->send_data(SS_Skyline[(k1 * len2) + k2], len * sizeof(uint64_t));
-              }
-              for (int k = 0; k < len; k++)
-              {
-                SS_Skyline[(k1 * len2) + k2][k] = (SS_Skyline[(k1 * len2) + k2][k] + tmp1[k]) & mask;
-              }
-              delete[] tmp1;
-            }
-          }
-        }
-      }
-      #pragma omp taskwait
-    }  
-  }
-
-  double endm = omp_get_wtime();
-  ss_mask = endm - startm;
-  cout << ss_mask << " s" << endl;
-  uint64_t comm_2 = 0;
-  for(int j = 0; j< THs; j++){
-    comm_2+=Iot[j]->counter;
-  }
-  com1 = comm_2-comm_1;
-  cout << "select element" << endl;
-  // select
-  uint64_t *res = new uint64_t[len]();
-  uint64_t *inA = new uint64_t[m];
-  uint64_t *inB = new uint64_t[m];
-  uint64_t *outC = new uint64_t[m];
-  uint64_t *JT = new uint64_t[len1 * polylen];
-  uint64_t *IT = new uint64_t[polylen];
-  uint32_t *pos = new uint32_t[m];
-  unordered_map<uint32_t, uint32_t *> posindex;
-  uint64_t *tmp2 = new uint64_t[len1 * len];
-  uint64_t *tmpt = new uint64_t[len1 * len];
-  uint64_t *outD0 = new uint64_t[len1 * polylen];
-  uint64_t *outD = new uint64_t[polylen];
-
-  uint64_t *qt = new uint64_t[m];
-  // qt[0] = SS_G[1][k1 - 1];
-  // qt[1] = SS_G[2][k2 - 1];
-  for (int j = 0; j < m; j++) {
-    qt[j] =  Q[j] & mask; 
-  }
-  int lt = len;
-  uint64_t *S = new uint64_t[lt];
-  uint64_t **St = new uint64_t*[lt];
-  uint64_t *in1 = new uint64_t[lt*m];
-  uint64_t *out1 = new uint64_t[lt*m];
-  uint64_t **pt = new uint64_t*[lt];
-  uint64_t *Bt = new uint64_t[lt];
-  uint64_t *Rt = new uint64_t[lt*m];
-  prg.random_data(Rt, lt*m*sizeof(uint64_t));
-  uint64_t *Pmin = new uint64_t[m];
-  uint64_t *Tmin = new uint64_t[m];
-  unordered_map<uint32_t, uint64_t *> Result;
-  double starts = omp_get_wtime();
-  PosIndex(Q, SS_G, pos, posindex);
-  // SS_Print(len1, posindex[0]);
-  // SS_Print(len2, posindex[1]);
-  // double endscmp = omp_get_wtime();
-  // cout << "select element cmp:" << (endscmp-starts) << endl;
-  // JT[0] = SS_one;
-  // JT[1] = pos[1];
-  // double startpoly = omp_get_wtime();
-  #pragma omp parallel for
-  for (int j = 0; j < len1; j++)
-  {
-    JT[j * polylen + 0] = SS_one;
-    JT[j * polylen + 1] = pos[1];
-  }
-  IT[0] = SS_one;
-  IT[1] = pos[0];
-  for (int i = 2; i < polylen; i++)
-  {
-    inA[0] = JT[i/2];
-    inB[0] = JT[i - i/2];
-    inA[1] = IT[i/2];
-    inB[1] = IT[i - i/2];
-    Prod_H(m, inA, inB, outC, Prodt[0]);
-    // JT[i] = outC[0];
-    IT[i] = outC[1];
-    #pragma omp parallel for
-    for (int j = 0; j < len1; j++)
-    {
-      JT[j * polylen + i] = outC[0];
-    } 
-  }
-  memset(tmp2, 0, (len1 * len) * sizeof(uint64_t));
-  Prod_H(len1 * polylen, a, JT, outD0, Prodt[0]);
-  // double endspoly = omp_get_wtime();
-  // cout << "select element poly:" << (endspoly-startpoly) << endl;
-  #pragma omp parallel for
-  // for (int k1 = 0; k1 < len1; k1++)
-  // {
-  //   //polynomial
-  //   // uint64_t offset = b[0] + b[1] * k1;  // a2*i+b2
-  //   // Poly(polylen, b, k1, offset);
-  //   uint64_t offset = 0;
-  //   uint64_t t = 1;
-  //   for (int k = 0; k < polylen; k++)
-  //   {
-  //     offset = (offset + b[k] * t - outD0[k1 * polylen + k]) & mask;
-  //     t = (t * k1) & mask;
-  //   } 
-  //   for (int k = 0; k < len; k++)
-  //   {
-  //     // select
-  //     // for (int k = 0; k < SS_L[(k1 * len2) + k2]; k++)
-  //     for (int k2 = 0; k2 < len2; k2++)
-  //     {
-  //       tmp2[k1 * len + k] = (tmp2[k1 * len + k] + SS_Skyline[(k1 * len2) + k2][k] * posindex[1][k2]) & mask;
-  //     }
-  //     tmp2[k1 * len + k] = (tmp2[k1 * len + k] + offset) & mask; //(m+a[k1]*j+b[k1]) + a2*i+b2 - a[k1]*j-b[k1]
-  //   }
-  // }
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    for (int k2 = 0; k2 < len2; k2++)
-    {
-      // select
-      uint64_t pindx = posindex[1][k2];
-      uint64_t* skl_ = SS_Skyline[(k1 * len2) + k2];
-      // #pragma omp simd
-      for (int k = 0; k < len; k++)
-      {
-        tmp2[k1 * len + k] += (skl_[k] * pindx)/* & mask */;
-      }
-    }
-  }
-  // double endsaggr22 = omp_get_wtime();
-  // cout << "select element aggr22:" << (endsaggr22-endspoly) << endl;
-  for (int k1 = 0; k1 < len1; k1++)
-  {
-    //polynomial
-    // uint64_t mk1 = 0;
-    // for (int k = 0; k < polylen; k++)
-    // {
-    //   mk1 = (mk1 + outD0[k1 * polylen + k]) & mask;
-    // }
-    // uint64_t offset = (b[0] - mk1) & mask;
-    // uint64_t t = k1;
-    // for (int i = 1; i < polylen; i++)
-    // {
-    //   offset = (offset + b[i] * t) & mask;
-    //   t = (t * k1) & mask;
-    // } 
-    uint64_t offset = 0;
-    uint64_t t = 1;
-    for (int k = 0; k < polylen; k++)
-    {
-      offset += b[k] * t - outD0[k1 * polylen + k];
-      t = (t * k1) & mask;
-    } 
-    for (int k = 0; k < len; k++)
-    {
-      tmp2[k1* len + k] = (tmp2[k1 * len + k] + offset) & mask; //(m+a[k1]*j+b[k1]) + a2*i+b2 - a[k1]*j-b[k1]
-    }
-  }
-  // double endsaggr = omp_get_wtime();
-  // cout << "select element aggr:" << (endsaggr-endspoly) << endl;
-  if (party == ALICE)
-  {
-    Iot[0]->send_data(tmp2, len1 * len * sizeof(uint64_t));
-    Iot[1]->recv_data(tmpt, len1 * len * sizeof(uint64_t));
-  }
-  else
-  {
-    Iot[0]->recv_data(tmpt, len1 * len * sizeof(uint64_t));
-    Iot[1]->send_data(tmp2, len1 * len * sizeof(uint64_t));
-  }
-  #pragma omp parallel for /* reduction(+ : res) */
-  // for (int k1 = 0; k1 < len1; k1++)
-  // {
-  //   uint64_t pindx = posindex[0][k1];
-  //   for (int k = 0; k < len; k++)
-  //   {
-  //     res[k] += (tmpt[k1 * len + k] + tmp2[k1 * len + k]) * pindx;
-  //   }
-  // }
-  for (int k = 0; k < len; k++)
-  {
-    for (int k1 = 0; k1 < len1; k1++)
-    {
-      res[k] = (res[k] + (tmpt[k1 * len + k] + tmp2[k1 * len + k]) * posindex[0][k1]) & mask;
-    }
-  }
-  // double endsaggr2 = omp_get_wtime();
-  // cout << "select element aggr2:" << (endsaggr2-endsaggr) << endl;
-  //a2*pos[0]+b2
-  uint64_t mk2 = 0;
-  Prod_H(polylen, b, IT, outD, Prodt[0]);
-  // #pragma omp parallel for
-  for (int k = 0; k < polylen; k++)
-  {
-      // mk2 = (mk2 + outD[k]) & mask;
-      mk2 += outD[k];
-  }
-  // #pragma omp parallel for
-  for (int k = 0; k < len; k++)
-  {
-    res[k] = (res[k] - mk2) & mask; //(m+a2*i+b2) - a2*i+b2
-  }
-  double endqua = omp_get_wtime();
-  // SS_Print(len, res);
-  cout << "select element quasky:" << (endqua - starts) << endl;
-  // select dynamic skyline
-  // select dynamic skyline == res->result
-  int th = 0;
-  // dynamic points
-  // DP(len, res, qt, lenD, resD);
-  // double xx1 = omp_get_wtime();
-  //separate each dimension from "<<MAX"
-  if (party == ALICE)
-  {
-    uint64_t masktt = (1ULL << (MAX-2)) - 1;
-    #pragma omp parallel for
-    for (int j = 0; j < lt*m; j++)
-    {
-      Rt[j] = Rt[j] & masktt;
-    }
-    #pragma omp parallel for
-    for (int i = 0; i < lt; i++)
-    {
-      Bt[i] = (res[i] + (Rt[i] << MAX) + Rt[i+lt]) & mask;
-    }
-    Iot[th]->send_data(Bt, lt * sizeof(uint64_t));
-    // Iot[th]->send_data(Rt, lt*m*sizeof(uint64_t));
-    uint64_t *Rt0 = new uint64_t[lt*m];
-    Iot[th]->recv_data(Rt0, lt*m*sizeof(uint64_t));
-    #pragma omp parallel for
-    for (int i = 0; i < lt; i++)
-    {
-      pt[i] = new uint64_t[m];
-      for (int j = 0; j < m; j++)
-      {
-        pt[i][j] = (Rt0[j*lt+i] - Rt[j*lt+i]) & mask;
-      } 
-      // pt[i][0] = (pt[i][0] - Rt[i]- (Rt[lt+i]-Rt[lt+i]%((1ULL << MAX) ))/(1ULL << MAX)) & mask;
-      // pt[i][1] = (pt[i][1] - Rt[lt+i]%((1ULL << MAX) )) & mask;
-    }
-    delete[] Rt0;
-  }
-  else
-  {
-    Iot[th]->recv_data(Bt, lt * sizeof(uint64_t)); 
-    // #pragma omp parallel for
-    for (int i = 0; i < lt; i++)
-    {
-      Bt[i] = (Bt[i] + res[i]) & mask;
-    }
-    uint64_t *s = new uint64_t[m];
-    uint64_t masktt = (1ULL << MAX) - 1;
-    // uint64_t *Rt0 = new uint64_t[lt*m];
-    // Iot[th]->recv_data(Rt0, lt *m * sizeof(uint64_t)); 
-    // #pragma omp parallel for
-    for (int i = 0; i < lt; i++)
-    {
-      pt[i] = new uint64_t[m];
-      s[0] = Bt[i] & masktt;
-      for (int j = 1; j < m; j++)
-      {
-        Bt[i] = (Bt[i] - s[j - 1]) >> MAX;
-        s[j] = Bt[i] & masktt;
-      }
-      for (int j = 0; j < m; j++)
-      {
-        pt[i][j] = (s[m-1-j] - Rt[j*lt+i]) & mask;
-        // x[j*lt+i] = pt[i][j] & mask;
-      } 
-      // for (int j = 0; j < m; j++)
-      // {
-      //   uint64_t ttt = (s[m-1-j] - Rt0[j*lt+i]) & mask;
-      //   cout<< ttt <<",";
-      // } 
-      // cout<<";";
-    }
-    delete[] s;
-    Iot[th]->send_data(Rt, lt*m*sizeof(uint64_t)); 
-    // delete[] Rt0; 
-  }
-  //Euclid product
-  #pragma omp parallel for
-  for (int i = 0; i < lt; i++) {
-    for (int j = 0; j < m; j++) {
-      in1[i*m+j] = (pt[i][j] - qt[j]) & mask; 
-    }
-  }
-  Prod_H(lt*m, in1, in1, out1, Prodt[th]);
-  // double xx2 = omp_get_wtime();
-  // cout << "dy element euclid:" << (xx2 - xx1) << endl;
-  #pragma omp parallel for
-  for (int i = 0; i < lt; i++) {
-    S[i] = 0;
-    St[i] = new uint64_t[m];
-    for (int j = 0; j < m; j++) {
-      St[i][j] = out1[i*m+j] & mask;
-      S[i] = (S[i] + out1[i*m+j]) & mask;  
-    }
-  }
-  // Print S
-  // if (party == ALICE)
-  // {
-  //   Iot[th]->send_data(S, lt * sizeof(uint64_t));
-  // }
-  // else
-  // {
-  //   uint64_t *STTT =  new uint64_t[lt]; 
-  //   Iot[th]->recv_data(STTT, lt * sizeof(uint64_t));
-  //   for (int i = 0; i < lt; i++) {
-  //     cout<< ((STTT[i] + S[i]) & mask) << ",";
-  //   }
-  //   cout<<endl;
-  //   delete[] STTT;
-  // }
-  
-  uint64_t lam = 1;  
-  double xx3 = omp_get_wtime();
-  // cout << "dy element St:" << (xx3 - xx2) << endl; 
-  uint64_t *r = new uint64_t[1];
-  uint64_t *in2 = new uint64_t[1];
-  uint64_t *out2 = new uint64_t[1];
-  while(lam!=0){
-    uint64_t STMin = 0;
-    // double tt1 = omp_get_wtime();
-    SMIN_T(0, lt, S, pt, St, STMin, Pmin, Tmin);
-    // double tt2 = omp_get_wtime();
-    // cout << "loop element Smin:" << (tt2 - tt1) << endl; 
-    prg.random_data(r, sizeof(uint64_t));
-    in2[0] = (STMAX - STMin) & mask;
-    Prod_H(1, in2, r, out2, Prodt[th]);
-    if (party == ALICE)
-    {
-      Iot[th]->recv_data(&lam, sizeof(uint64_t)); 
-      Iot[th+1]->send_data(out2, sizeof(uint64_t));
-      lam = (lam + out2[0]) & mask;
-    }
-    else
-    {
-      Iot[th]->send_data(out2, sizeof(uint64_t));
-      Iot[th+1]->recv_data(&lam, sizeof(uint64_t)); 
-      lam = (lam + out2[0]) & mask;
-    }
-    // cout<<"lam:"<<lam<<endl;
-    // if (party == ALICE)
-    // {
-    //   Iot[th]->recv_data(out2, sizeof(uint64_t)); 
-    //   Iot[th+1]->send_data(&STMin, sizeof(uint64_t));
-    //   cout<<"SMIN:"<<((STMin + out2[0]) & mask)<<endl;
-    // }
-    // else
-    // {
-    //   Iot[th]->send_data(&STMin, sizeof(uint64_t));
-    //   Iot[th+1]->recv_data(out2, sizeof(uint64_t)); 
-    //   cout<<"SMIN:"<<((STMin + out2[0]) & mask)<<endl;
-    // }
-    
-    // double tt3 = omp_get_wtime();
-    // cout << "loop element break:" << (tt3 - tt2) << endl;
-    if(lam!=0){
-      int pos = Result.size();
-      // cout<<pos<<endl;
-      Result[pos] = new uint64_t[m];
-      // for (int i = 0; i < m; i++)
-      // {
-      //   Result[pos][i] = Pmin[i];
-      // }
-      memcpy(Result[pos], Pmin, m * sizeof(uint64_t));
-      // Result[pos] = Pmin;
-      // cout<<Pmin[0]<<","<<Result[pos][0]<<endl;
-      // if (party == ALICE)
-      // {
-      //   Iot[th]->recv_data(out2, sizeof(uint64_t)); 
-      //   Iot[th+1]->send_data(&Pmin[0], sizeof(uint64_t));
-      //   cout<<"PMIN:"<<((Pmin[0] + out2[0]) & mask);
-      //   Iot[th]->recv_data(out2, sizeof(uint64_t)); 
-      //   Iot[th+1]->send_data(&Pmin[1], sizeof(uint64_t));
-      //   cout<<","<<((Pmin[1] + out2[0]) & mask)<<endl;
-      // }
-      // else
-      // {
-      //   Iot[th]->send_data(&Pmin[0], sizeof(uint64_t));
-      //   Iot[th+1]->recv_data(out2, sizeof(uint64_t)); 
-      //   cout<<"PMIN:"<<((Pmin[0] + out2[0]) & mask);
-      //   Iot[th]->send_data(&Pmin[1], sizeof(uint64_t));
-      //   Iot[th+1]->recv_data(out2, sizeof(uint64_t)); 
-      //   cout<<","<<((Pmin[1] + out2[0]) & mask)<<endl;
-      // }
-    //eliminate
-      SDOMbyMin_T(lt, STMAX, Tmin, St, STMin, S);
-      //Print S
-      // if (party == ALICE)
-      // {
-      //   Iot[th]->send_data(S, lt * sizeof(uint64_t));
-      // }
-      // else
-      // {
-      //   uint64_t *STTT =  new uint64_t[lt]; 
-      //   Iot[th]->recv_data(STTT, lt * sizeof(uint64_t));
-      //   for (int i = 0; i < lt; i++) {
-      //     cout<< ((STTT[i] + S[i]) & mask) << ",";
-      //   }
-      //   cout<<endl;
-      //   delete[] STTT;
-      // }  
-    }
-    // double tt4 = omp_get_wtime();
-    // cout << "loop element filter:" << (tt4 - tt3) << endl;
-  }
-  double xx4 = omp_get_wtime();
-  cout << "dy element loop:" << (xx4 - xx3) << endl;
-  // Return
-  // A
-  int lenD = Result.size();
-  uint64_t *resD = new uint64_t[lenD*m];
-  for (int i = 0; i < lenD; i++)
-  {
-    for (int j = 0; j < m; j++)
-    {
-      resD[i*m+j] = Result[i][j];
-    }
-  }
-  reslen = lenD;
-  double ends = omp_get_wtime();
-  ss_select = ends - starts;
-  cout << ss_select << " s" << endl;
-  uint64_t comm_3 = 0;
-  for(int j = 0; j< THs; j++){
-    comm_3+=Iot[j]->counter;
-  }
-  com2 = comm_3-comm_2;
-  cout<<lenD<<endl;
-  if (party == ALICE)
-  {
-    Iot[th]->send_data(resD, lenD*m * sizeof(uint64_t));
-    uint64_t *STTT =  new uint64_t[lenD*m]; 
-    Iot[th]->recv_data(STTT, lenD*m * sizeof(uint64_t));
-    for (int i = 0; i < lenD; i++) {
-      cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
-    }
-    delete[] STTT;
-  }
-  else
-  {
-    uint64_t *STTT =  new uint64_t[lenD*m]; 
-    Iot[th]->recv_data(STTT, lenD*m * sizeof(uint64_t));
-    Iot[th]->send_data(resD, lenD*m * sizeof(uint64_t));
-    for (int i = 0; i < lenD; i++) {
-      cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
-    }
-    delete[] STTT;
-  }
-  delete[] r;
-  delete[] in2;
-  delete[] out2;
-  delete[] Tmin;
-  delete[] Pmin;
-  delete[] Bt;
-  delete[] Rt;
-  for(int j = 0; j< lt; j++)
-  {
-    delete[] St[j];
-    delete[] pt[j];
-  }
-  delete[] St;
-  delete[] pt;
-  delete[] in1;
-  delete[] out1;
-  delete[] qt;
-  delete[] a;
-  delete[] b;
-  delete[] JT;
-  delete[] IT;
-  delete[] inA;
-  delete[] inB;
-  delete[] outC;
-  delete[] outD;
-  delete[] outD0;
   delete[] tmpt;
   delete[] tmp2;
   delete[] pos;
@@ -9128,329 +6492,6 @@ void SSub_Con(int lenl, int lenr, int lendt, int lenut, int th)
     }
   }
   delete[] Cont;
-}
-
-void CSub_SS_Two_1(int lenl, int lenr, int lend, int lenu)
-{ 
-  int len1 = lenr - lenl;
-  int len2 = lenu - lend;
-  int len_x = len1 + 1;
-  int len_y = len2 + 1;
-  uint64_t ** Skylinet = new uint64_t*[len_x * len_y];
-  int LENX = SS_G[0][1];
-  int LENY = SS_G[0][0];   
-  SS_Con = new uint32_t[LENY * LENX];
-  double starts = omp_get_wtime();
-  // PRG128 prg;
-  uint64_t SS_one = 0;
-  prg.random_data(&SS_one, sizeof(uint64_t));
-  if (party == ALICE)
-  {
-    Iot[0]->send_data(&SS_one, sizeof(uint64_t));
-  }
-  else
-  {
-    uint64_t one = 0;
-    Iot[0]->recv_data(&one, sizeof(uint64_t));
-    SS_one = (1 - one) & mask;
-  }
-  int tmpLen = SS_L[(lenr * LENX) + lenu];
-  // #pragma omp parallel
-  // for (int k1 = lenr; k1 >= lenl; k1--)
-  // {
-  //   for (int k2 = lenu; k2 >= lend; k2--)
-  //   {
-  //     Skyline[(k1 << MAX) + k2] = new uint32_t[tmpLen];
-  //   }
-  // }
-  // vector<uint64_t> XX(tmpLen);
-  // copy(SS_Skyline[(lenr << MAX) + lenu], SS_Skyline[(lenr << MAX) + lenu] + tmpLen, XX.begin());
-  // Skyline_Print(XX);
-  for (int k1 = len_x * len_y - 1; k1 >= 0; k1--)
-  {
-    Skylinet[k1] = new uint64_t[tmpLen];
-  }
-  memcpy(Skylinet[((lenr - lenl) * len_y) + lenu - lend], SS_Skyline[(lenr * LENX) + lenu], tmpLen * sizeof(uint64_t));
-  // Skylinet[(lenr << MAX) + lenu] = SS_Skyline[(lenr * LENX) + lenu];
-  // copy(SS_Skyline[(lenr << MAX) + lenu], SS_Skyline[(lenr << MAX) + lenu] + tmpLen, Skylinet[(lenr << MAX) + lenu]);
-  #pragma omp parallel num_threads(2)
-  {
-    #pragma omp single 
-    {
-      #pragma omp task firstprivate(lenr, lenl, lenu, lend, SS_one, len_y)
-      {
-        // first row
-        int LENXt = LENX;
-		    uint64_t mask2 = mask;
-		    uint64_t one2 = SS_one;
-        int tmpLent = tmpLen;
-        uint64_t **Skyline1 = new uint64_t* [len_x];
-        for (int k1 = len_x - 1; k1 >= 0; k1--)
-        {
-          Skyline1[k1] = new uint64_t[tmpLent];
-        }
-        memcpy(Skyline1[lenr - lenl], Skylinet[((lenr - lenl) * len_y) + lenu - lend], tmpLent * sizeof(uint64_t));
-        // uint64_t *inA = new uint64_t[tmpLent];
-        uint64_t *inB = new uint64_t[tmpLent];
-        uint64_t *outD = new uint64_t[tmpLent];
-        int k2 = lenu;
-        for (int k1 = lenr - 1; k1 >= lenl; k1--)
-        {
-          // copy(Skyline1[((k1 + 1) << MAX) + k2], Skyline1[((k1 + 1) << MAX) + k2] + tmpLent, inA);
-          uint64_t inBt = (one2 - SS_C[(k1 * LENXt) + k2]) & mask2;
-          for (int i = 0; i < tmpLent; i++)
-          {
-            inB[i] = inBt;
-          }
-          //(1-con) * SSone
-          Prod_H(tmpLent, Skyline1[k1 - lenl + 1], inB, outD, Prodt[0]);
-          memcpy(Skyline1[k1 - lenl], outD, tmpLent * sizeof(uint64_t));
-        }
-        // delete[] inA;
-        delete[] inB;
-        delete[] outD;
-        for (int k1 = lenr - 1; k1 >= lenl; k1--)
-        {
-          memcpy(Skylinet[((k1 - lenl) * len_y) + k2 - lend], Skyline1[k1 - lenl], tmpLent * sizeof(uint64_t));
-        }
-        for (int k1 = len_x - 1; k1 >= 0; k1--)
-        {
-          delete[] Skyline1[k1];
-        }
-        delete[] Skyline1;
-      }
-      #pragma omp task firstprivate(lenr, lenl, lenu, lend, SS_one, len_y)
-      {
-        // first col
-		    int LENXt = LENX;
-		    uint64_t mask3 = mask;
-		    uint64_t one3 = SS_one;
-        int tmpLent = tmpLen;
-        uint64_t **Skyline2 = new uint64_t* [len_y];
-        for (int k2 = len_y - 1; k2 >= 0; k2--)
-        {
-          Skyline2[k2] = new uint64_t[tmpLent];
-        }
-        memcpy(Skyline2[lenu - lend], Skylinet[((lenr - lenl) * len_y) + lenu - lend], tmpLent * sizeof(uint64_t));
-        // uint64_t *inA = new uint64_t[tmpLent];
-        uint64_t *inB = new uint64_t[tmpLent];
-        uint64_t *outD = new uint64_t[tmpLent];
-        int k1 = lenr;
-        for (int k2 = lenu - 1; k2 >= lend; k2--)
-        {
-          // copy(Skyline2[(k1 << MAX) + k2 + 1], Skyline2[(k1 << MAX) + k2 + 1] + tmpLent, inA);
-          uint64_t inBt = (one3 - SS_C[(k1 * LENXt) + k2]) & mask3;
-          for (int i = 0; i < tmpLent; i++)
-          {
-            inB[i] = inBt;
-          }
-          //(1-con) * SSone
-          Prod_H(tmpLent, Skyline2[k2 -lend + 1], inB, outD, Prodt[1]);
-          memcpy(Skyline2[k2 -lend], outD, tmpLent * sizeof(uint64_t));
-        }
-        // delete[] inA;
-        delete[] inB;
-        delete[] outD;
-        for (int k2 = lenu - 1; k2 >= lend; k2--)
-        {
-          memcpy(Skylinet[((k1 - lenl) * len_y) + k2 - lend], Skyline2[k2 -lend], tmpLent * sizeof(uint64_t));
-        }
-        for (int k2 = len_y - 1; k2 >= 0; k2--)
-        {
-          delete[] Skyline2[k2];
-        }
-
-        delete[] Skyline2;
-      }
-      #pragma omp taskwait
-    }    
-  }
-  // #pragma omp parallel
-  // {
-  //   #pragma omp single 
-  //   {
-  //     #pragma omp task firstprivate(lenr, lenl, lenu, lend, SS_C)
-  //     {
-  //       SSub_Con((lenr + 1) / 2, lenr - 1, (lenu + 1) / 2, lenu - 1, 0);
-  //     }
-  //     #pragma omp task firstprivate(lenr, lenl, lenu, lend, SS_C)
-  //     {
-  //       SSub_Con((lenr + 1) / 2, lenr - 1, lend, (lenu - 1) / 2, 2);
-  //     }
-  //     #pragma omp task firstprivate(lenr, lenl, lenu, lend, SS_C)
-  //     {
-  //       SSub_Con(lenl, (lenr - 1) / 2, (lenu + 1) / 2, lenu - 1, 4);
-  //     }
-  //     #pragma omp task firstprivate(lenr, lenl, lenu, lend, SS_C)
-  //     {
-  //       SSub_Con(lenl, (lenr - 1) / 2, lend, (lenu - 1) / 2, 6);
-  //     }
-  //     #pragma omp taskwait
-  //   }
-  // }
-  #pragma omp parallel num_threads(THs)
-  {
-    #pragma omp single 
-    {
-      for (int itr = 0; itr < THs; itr++)
-      {
-        #pragma omp task firstprivate(lenr, lenl, lenu, lend, THs)
-        {
-          int lendt = (((lenu - 1 - lend) * itr)/ THs) + 1 +lend;
-          int lenut = ((lenu - 1 - lend) * (itr + 1))/ THs + lend;
-          if(itr == 0){
-            lendt = lend;
-          }
-          SSub_Con(lenl, lenr - 1, lendt, lenut, itr);
-        }
-      }
-      #pragma omp taskwait
-    }  
-  }
-  for (int k2 = lenu - 1 - lend; k2 >= 0; k2--)
-  {
-    cout<<G[2][k2]<<"\t";
-    for (int k1 = 0; k1 <= LENX - 1; k1++)
-    {
-      uint64_t *x = new uint64_t[1];
-      x[0] = SS_Con[(k1 * LENX) + k2];
-      SS_Print(1, x);
-      cout << "\t";
-    }
-    cout << endl;
-  }
-  cout<<"\t";
-  for (int k1 = 0; k1 <= LENX - 1; k1++)
-  {
-    cout<<G[1][k1]<<"\t";
-  }
-  cout<<endl;
-  int minLen = (len1 > len2) ? len2 : len1;
-  for (int i = 1; i <= minLen; i++)
-  {
-    cout << (minLen - i) << " : " << endl;
-    #pragma omp parallel num_threads(THs)
-    {
-      #pragma omp single 
-      {
-        for (int itr = 0; itr < THs; itr++)
-        {
-          #pragma omp task firstprivate(lenr, lenl, lenu, lend, THs, len_y)
-          {
-            int LENXt = LENX;
-            uint64_t maskt = mask;
-            int tmpLent = tmpLen;      
-            uint64_t *inB = new uint64_t[tmpLent];
-            uint64_t *outD = new uint64_t[tmpLent];
-            if(itr < (THs / 2)){
-              int k2 = lenu - i;
-              int T1 = (((lenr - i - lenl) * itr)/ (THs / 2)) + 1 + lenl;
-              int T2 = (((lenr - i - lenl) * (itr + 1))/ (THs / 2)) + lenl;
-              if(itr == 0){
-                T1 = lenl;
-              }
-              // int T2 = lenr - i;
-              // int T1 = lenl;
-              if(T2 - T1 + 1 > 0){
-                uint64_t ** Skylinet1 = new uint64_t* [T2 - T1 + 1];
-                for (int k1 = T2; k1 >= T1; k1--)
-                {
-                  Skylinet1[k1 - T1] = new uint64_t[tmpLent];
-                  for (int j = 0; j < tmpLent; j++)
-                  {
-                    inB[j] = SS_Con[(k1 * LENXt) + k2] & maskt;
-                  }
-                  //Get value from up grid, then free copy about Skylinet1.
-                  Prod_H(tmpLent, Skylinet[((k1 - lenl) * len_y) + k2 - lend + 1], inB, outD, Prodt[itr]);
-                  memcpy(Skylinet1[k1 - T1], outD, tmpLent * sizeof(uint64_t));
-                }
-                for (int k1 = T2; k1 >= T1; k1--)
-                {
-                  memcpy(Skylinet[((k1 - lenl) * len_y) + k2 - lend], Skylinet1[k1 - T1], tmpLent * sizeof(uint64_t));
-                  delete[] Skylinet1[k1 - T1];
-                }
-                delete[] Skylinet1;
-              }             
-            }
-            else{
-              int k1 = lenr - i;
-              int T1 = (((lenu - i - 1 - lend) * (itr - (THs / 2)))/ (THs / 2)) + 1 + lend;
-              int T2 = (((lenu - i - 1 - lend) * (itr + 1 - (THs / 2)))/ (THs / 2)) + lend;
-              if(itr == (THs / 2)){
-                T1 = lend;
-              }
-              // int T2 = lenu - i - 1;
-              // int T1 = lend;
-              if(T2 - T1 + 1 > 0){
-                uint64_t ** Skylinet2 = new uint64_t* [T2 - T1 + 1];
-                for (int k3 = T2; k3 >= T1; k3--)
-                {
-                  Skylinet2[k3 - T1] = new uint64_t[tmpLent];
-                  for (int j = 0; j < tmpLent; j++)
-                  {
-                    inB[j] = SS_Con[(k1 * LENXt) + k3] & maskt;
-                  }
-                  //Get value from right grid, then free copy about Skylinet2.
-                  Prod_H(tmpLent,  Skylinet[((k1 - lenl + 1) * len_y) + k3 - lend], inB, outD, Prodt[itr]);          
-                  memcpy(Skylinet2[k3 - T1], outD, tmpLent * sizeof(uint64_t));
-                }
-                for (int k3 = T2; k3 >= T1; k3--)
-                {
-                  memcpy(Skylinet[((k1 - lenl) * len_y) + k3 - lend], Skylinet2[k3 - T1], tmpLent * sizeof(uint64_t));
-                  delete[] Skylinet2[k3 - T1];
-                }
-                delete[] Skylinet2;
-              }             
-            }
-            delete[] inB;
-            delete[] outD;
-          }
-        }
-        #pragma omp taskwait
-      }    
-    }
-  }
-    for (int k2 = lenu - 1 - lend; k2 >= 0; k2--)
-  {
-    cout<<G[2][k2]<<"\t";
-    for (int k1 = 0; k1 <= LENX - 1; k1++)
-    {
-      SS_Print(tmpLen,  Skylinet[((k1 - lenl) * len_y) + k2 - lend]);
-      cout << "\t";
-    }
-    cout << endl;
-  }
-  cout<<"\t";
-  for (int k1 = 0; k1 <= LENX - 1; k1++)
-  {
-    cout<<G[1][k1]<<"\t";
-  }
-  cout<<endl;
-  // #pragma omp parallel for
-  for (int k2 = lenu - 1; k2 >= lend; k2--)
-  {
-    for (int k1 = lenr - 1; k1 >= lenl; k1--)
-    {
-      uint64_t *tmpSkyline = new uint64_t[SS_L[(k1 * LENX) + k2]];
-      memcpy(tmpSkyline, SS_Skyline[(k1 * LENX) + k2], SS_L[(k1 * LENX) + k2] * sizeof(uint64_t));
-      delete[] SS_Skyline[(k1 * LENX) + k2];
-      SS_Skyline[(k1 * LENX) + k2] = new uint64_t[tmpLen + SS_L[(k1 * LENX) + k2]];
-      memcpy(SS_Skyline[(k1 * LENX) + k2], Skylinet[((k1 - lenl) * len_y) + k2 - lend], tmpLen * sizeof(uint64_t));
-      memcpy(SS_Skyline[(k1 * LENX) + k2] + tmpLen, tmpSkyline, SS_L[(k1 * LENX) + k2] * sizeof(uint64_t));
-      SS_L[(k1 * LENX) + k2] = tmpLen + SS_L[(k1 * LENX) + k2];
-      delete[] tmpSkyline;
-      // delete[] Skylinet[((k1 - lenl) * len_y) + k2 - lend];
-    }
-  }
-  for (int k1 = len_x * len_y - 1; k1 >= 0; k1--)
-  {
-    delete[] Skylinet[k1];
-  }
-  delete[] Skylinet;
-  double ends = omp_get_wtime();
-  double ss_t = ends - starts;
-  cout << "[(" << lenl << "," << lend << "),(" << (lenr - 1) << "," << (lenu - 1) << ")]" << endl;
-  cout << "ConstrainSub_SS:"<< ss_t << " s" << endl;
 }
 
 void CSub_SS_Two(int lenl, int lenr, int lend, int lenu)
@@ -11710,135 +8751,6 @@ void dynamicSkylineR(unordered_map<uint32_t, vector<uint32_t>> &G){
   Skyline.clear();
 }
 
-void test_Parrllel()
-{
-  double ttt1 = omp_get_wtime();
-  omp_set_nested(8);
-  for (int ee = 0; ee < 10; ee++)
-  {
-#pragma omp parallel
-    {
-#pragma omp sections
-      {
-#pragma omp section
-        {
-          cout << "T1 = " << omp_get_thread_num() << endl;
-          string ss = "=1111=";
-#pragma omp parallel
-          {
-#pragma omp sections
-            {
-#pragma omp section
-              {
-                double t1 = omp_get_wtime();
-                cout << "11 = " << ss << omp_get_thread_num() << endl;
-                for (int i = 0; i < 10; i++)
-                {
-                  string ss = "-1:" + to_string(i) + "-";
-                  cout << ss;
-                }
-
-                double t2 = omp_get_wtime();
-                cout << "test" << (t2 - t1) << endl;
-              }
-#pragma omp section
-              {
-                cout << "12 = " << omp_get_thread_num() << endl;
-                for (int i = 0; i < 10; i++)
-                {
-                  string ss = "-2:" + to_string(i) + "-";
-                  cout << ss;
-                }
-              }
-            }
-          }
-        }
-#pragma omp section
-        {
-          cout << "T2 = " << omp_get_thread_num() << endl;
-          string ss = "=2222=";
-          int a = 0;
-          for (int j = 0; j < 3; j++)
-          {
-            int n = j + 5;
-            cout << "a=" << a << "**" << endl;
-#pragma omp parallel
-            {
-#pragma omp sections
-              {
-#pragma omp section
-                {
-                  cout << "21 = " << ss << omp_get_thread_num() << endl;
-                  for (int i = 0; i < n; i++)
-                  {
-                    string ss = "-3:" + to_string(i) + "-";
-                    cout << j << "*" << ss;
-                  }
-                  if (j == 0)
-                  {
-                    a = 1;
-                    cout << "$$$$$$$$$$$$$$$$$";
-                  }
-                  if (j == 1)
-                  {
-
-                    cout << "@@@@@@@@@@@@@@@@@";
-                  }
-                  if (j == 2)
-                  {
-                    cout << "#################";
-                  }
-                }
-#pragma omp section
-                {
-                  cout << "22 = " << omp_get_thread_num() << endl;
-                  for (int i = 0; i < n; i++)
-                  {
-                    string ss = "-4:" + to_string(i) + "-";
-                    cout << j << "*" << ss;
-                  }
-                  if (j == 0)
-                  {
-                    cout << "$$$$$$$$$$$$$$$$$";
-                  }
-                  if (j == 1)
-                  {
-                    a = 2;
-                    cout << "@@@@@@@@@@@@@@@@@";
-                  }
-                  if (j == 2)
-                  {
-
-                    cout << "#################";
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  double ttt2 = omp_get_wtime();
-  cout << "test" << (ttt2 - ttt1) << endl;
-}
-
-void test_SkylineGen_1(){
-  uint64_t *tmp1 = new uint64_t[2]();
-  uint64_t *tmp2 = new uint64_t[3]();
-  uint64_t *tmp3 = new uint64_t[2]();
-  prg.random_data(tmp1, 2 * sizeof(uint64_t));
-  prg.random_data(tmp2, 3 * sizeof(uint64_t));
-  tmp2[0] = 0;
-  tmp2[1] = tmp1[1];
-  tmp3[0] = tmp1[0];
-  tmp3[1] = tmp2[1];
-  int num = 0;
-  uint64_t *res;
-  SkylineGen_1(tmp1, tmp2, tmp3, 2,3,2,num,res,Auxt[0],Prodt[0],Iot[0]);
-  SkylineGen_1(tmp1, tmp2, tmp3, 2,3,2,num,res,Auxt[1],Prodt[1],Iot[1]);
-}
-
 void test_Cmp(){
   int t = 1000;
   uint64_t yt = (1ULL << lambda);
@@ -12227,30 +9139,8 @@ void test_Cmp(){
   cout<<((0-dd)&1)<<endl;
 }
 
-void test_Copy(){
-  uint32_t *tmp1 = new uint32_t[100]();
-  prg.random_data(tmp1, 100 * sizeof(uint32_t));
-  double time_0 = omp_get_wtime();
-  for (int i = 0; i < 81000000; i++)
-  {
-    uint32_t *tmp2 = new uint32_t[2]();
-    copy(tmp1,tmp1+100,tmp2);
-    delete []tmp2;
-  }
-  double time_1 = omp_get_wtime();
-  for (int i = 0; i < 81000000; i++)
-  {
-    uint32_t *tmp3 = new uint32_t[2]();
-    memcpy(tmp1,tmp3,100 * sizeof(uint32_t));
-    delete []tmp3;
-  }
-  double time_2 = omp_get_wtime();
-  cout<<(time_1 - time_0)<<endl;
-  cout<<(time_2 - time_1)<<endl;
-}
-
-// whole "do" dataset
-int mainq1(int argc, char **argv)
+// whole other("do") dataset
+int maindowq(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
@@ -12284,99 +9174,99 @@ int mainq1(int argc, char **argv)
     double Qtime = 0, QCom = 0, QCom1 = 0, QCom2 = 0, Qdummy = 0, Qmask = 0, Qselect = 0, Qlen = 0;
     int itrs = 20;
     for (int itr = 0; itr < itrs; itr++)
-  {
-    vector<uint32_t> q(m);
-    for (int j = 0; j < m; j++)
     {
-      q[j] = p[rand()%n][j];
-    }
-    if (party == ALICE)
-    {
-      uint32_t *q0 = new uint32_t[m];
+      vector<uint32_t> q(m);
       for (int j = 0; j < m; j++)
       {
-        q0[j] = q[j];
+        q[j] = p[rand()%n][j];
       }
-      Iot[i]->send_data(q0, m * sizeof(uint32_t));
-      delete[] q0;
-    }
-    else
-    {
-      uint32_t *q0 = new uint32_t[m];
-      Iot[i]->recv_data(q0, m * sizeof(uint32_t));
-      for (int j = 0; j < m; j++)
+      if (party == ALICE)
       {
-        q[j] = q0[j];
+        uint32_t *q0 = new uint32_t[m];
+        for (int j = 0; j < m; j++)
+        {
+          q0[j] = q[j];
+        }
+        Iot[i]->send_data(q0, m * sizeof(uint32_t));
+        delete[] q0;
       }
-      delete[] q0;
-    } 
-    cout<<"q:"<<q[0]<<"\t"<<q[1]<<endl;
-    // plain(p, q);
-    uint32_t len = 0;
-    uint64_t comm_start = 0;
-    for(int j = 0; j< THs; j++){
-      comm_start+=Iot[j]->counter;
+      else
+      {
+        uint32_t *q0 = new uint32_t[m];
+        Iot[i]->recv_data(q0, m * sizeof(uint32_t));
+        for (int j = 0; j < m; j++)
+        {
+          q[j] = q0[j];
+        }
+        delete[] q0;
+      } 
+      cout<<"q:"<<q[0]<<"\t"<<q[1]<<endl;
+      plain(p, q);
+      uint32_t len = 0;
+      uint64_t comm_start = 0;
+      for(int j = 0; j< THs; j++){
+        comm_start+=Iot[j]->counter;
+      }
+      double time_start = omp_get_wtime();
+      vector<uint32_t> Q = SS_Two(q);
+      double time_end = omp_get_wtime();
+      Ptime += time_end - time_start;
+      uint64_t comm_end = 0;
+      for(int j = 0; j< THs; j++){
+        comm_end+=Iot[j]->counter;
+      }
+      PCom += comm_end-comm_start;
+      uint64_t *X = SkylineRes(Q,len);
+      double time_end2 = omp_get_wtime();
+      Qtime+= time_end2 - time_end;
+      uint64_t comm_end2 = 0;
+      for(int j = 0; j< THs; j++){
+        comm_end2+=Iot[j]->counter;
+      }
+      QCom += comm_end2-comm_end;
+      QCom1 += com1;
+      QCom2 += com2;
+      vector<uint64_t> XX(len);
+      copy(X,X+len,XX.begin());
+      Pupload += ss_upload;
+      Pprocess += ss_process;
+      Qdummy += ss_dummy;
+      Qmask += ss_mask;
+      Qselect += ss_select;
+      Qlen += len;
+      // StoreSKyline();
+      // vector<uint64_t> XX(len);
+      // copy(X, X + len, XX.begin());
+      // Skyline_Print(XX);
+      p.clear();
+      q.clear();
+      Q.clear();
     }
-    double time_start = omp_get_wtime();
-    vector<uint32_t> Q = SS_Two(q);
-    double time_end = omp_get_wtime();
-    Ptime += time_end - time_start;
-    uint64_t comm_end = 0;
-    for(int j = 0; j< THs; j++){
-      comm_end+=Iot[j]->counter;
+    delete[] SS_Con;
+    delete[] SS_C;
+    delete[] SS_L;
+    for(int j = 0; j< SS_G[0][0] * SS_G[0][1]; j++)
+    {
+      delete[] SS_Skyline[j];
     }
-    PCom += comm_end-comm_start;
-    uint64_t *X = SkylineRes(Q,len);
-    double time_end2 = omp_get_wtime();
-    Qtime+= time_end2 - time_end;
-    uint64_t comm_end2 = 0;
-    for(int j = 0; j< THs; j++){
-      comm_end2+=Iot[j]->counter;
+    delete[] SS_Skyline;
+    for(int j = 0; j< m; j++)
+    {
+      delete[] SS_G[j];
     }
-    QCom += comm_end2-comm_end;
-    QCom1 += com1;
-    QCom2 += com2;
-    vector<uint64_t> XX(len);
-    copy(X,X+len,XX.begin());
-    Pupload += ss_upload;
-    Pprocess += ss_process;
-    Qdummy += ss_dummy;
-    Qmask += ss_mask;
-    Qselect += ss_select;
-    Qlen += len;
-    // StoreSKyline();
-    // vector<uint64_t> XX(len);
-    // copy(X, X + len, XX.begin());
-    // Skyline_Print(XX);
-    p.clear();
-    q.clear();
-    Q.clear();
-  }
-  delete[] SS_Con;
-  delete[] SS_C;
-  delete[] SS_L;
-  for(int j = 0; j< SS_G[0][0] * SS_G[0][1]; j++)
-  {
-    delete[] SS_Skyline[j];
-  }
-  delete[] SS_Skyline;
-  for(int j = 0; j< m; j++)
-  {
-    delete[] SS_G[j];
-  }
-  delete[] SS_G;
-  Ptime = Ptime/ itrs;
-  PCom = PCom/ itrs;
-  Ptime = Ptime/ itrs;
-  Pupload = Pupload/ itrs;
-  Pprocess = Pprocess/ itrs;
-  QCom = QCom/ itrs;
-  QCom1 = QCom1/ itrs;
-  QCom2 = QCom2/ itrs;
-  Qdummy = Qdummy/ itrs;
-  Qmask = Qmask/ itrs;
-  Qselect = Qselect/ itrs;
-  Qlen = Qlen/ itrs;
+    delete[] SS_G;
+    Ptime = Ptime/ itrs;
+    PCom = PCom/ itrs;
+    Ptime = Ptime/ itrs;
+    Pupload = Pupload/ itrs;
+    Pprocess = Pprocess/ itrs;
+    QCom = QCom/ itrs;
+    QCom1 = QCom1/ itrs;
+    QCom2 = QCom2/ itrs;
+    Qdummy = Qdummy/ itrs;
+    Qmask = Qmask/ itrs;
+    Qselect = Qselect/ itrs;
+    Qlen = Qlen/ itrs;
     if (party == ALICE)
     {
       ofstream outfile;
@@ -12452,99 +9342,99 @@ int mainq1(int argc, char **argv)
     double Qtime = 0, QCom = 0, QCom1 = 0, QCom2 = 0, Qdummy = 0, Qmask = 0, Qselect = 0, Qlen = 0;
     int itrs = 20;
     for (int itr = 0; itr < itrs; itr++)
-  {
-    vector<uint32_t> q(m);
-    for (int j = 0; j < m; j++)
     {
-      q[j] = p[rand()%n][j];
-    }
-    if (party == ALICE)
-    {
-      uint32_t *q0 = new uint32_t[m];
+      vector<uint32_t> q(m);
       for (int j = 0; j < m; j++)
       {
-        q0[j] = q[j];
+        q[j] = p[rand()%n][j];
       }
-      Iot[i]->send_data(q0, m * sizeof(uint32_t));
-      delete[] q0;
-    }
-    else
-    {
-      uint32_t *q0 = new uint32_t[m];
-      Iot[i]->recv_data(q0, m * sizeof(uint32_t));
-      for (int j = 0; j < m; j++)
+      if (party == ALICE)
       {
-        q[j] = q0[j];
+        uint32_t *q0 = new uint32_t[m];
+        for (int j = 0; j < m; j++)
+        {
+          q0[j] = q[j];
+        }
+        Iot[i]->send_data(q0, m * sizeof(uint32_t));
+        delete[] q0;
       }
-      delete[] q0;
-    } 
-    cout<<"q:"<<q[0]<<"\t"<<q[1]<<endl;
-    // plain(p, q);
-    uint32_t len = 0;
-    uint64_t comm_start = 0;
-    for(int j = 0; j< THs; j++){
-      comm_start+=Iot[j]->counter;
+      else
+      {
+        uint32_t *q0 = new uint32_t[m];
+        Iot[i]->recv_data(q0, m * sizeof(uint32_t));
+        for (int j = 0; j < m; j++)
+        {
+          q[j] = q0[j];
+        }
+        delete[] q0;
+      } 
+      cout<<"q:"<<q[0]<<"\t"<<q[1]<<endl;
+      plain(p, q);
+      uint32_t len = 0;
+      uint64_t comm_start = 0;
+      for(int j = 0; j< THs; j++){
+        comm_start+=Iot[j]->counter;
+      }
+      double time_start = omp_get_wtime();
+      vector<uint32_t> Q = SS_Two(q);
+      double time_end = omp_get_wtime();
+      Ptime += time_end - time_start;
+      uint64_t comm_end = 0;
+      for(int j = 0; j< THs; j++){
+        comm_end+=Iot[j]->counter;
+      }
+      PCom += comm_end-comm_start;
+      uint64_t *X = SkylineRes_T(Q,len);
+      double time_end2 = omp_get_wtime();
+      Qtime+= time_end2 - time_end;
+      uint64_t comm_end2 = 0;
+      for(int j = 0; j< THs; j++){
+        comm_end2+=Iot[j]->counter;
+      }
+      QCom += comm_end2-comm_end;
+      QCom1 += com1;
+      QCom2 += com2;
+      vector<uint64_t> XX(len);
+      copy(X,X+len,XX.begin());
+      Pupload += ss_upload;
+      Pprocess += ss_process;
+      Qdummy += ss_dummy;
+      Qmask += ss_mask;
+      Qselect += ss_select;
+      Qlen += len;
+      // StoreSKyline();
+      // vector<uint64_t> XX(len);
+      // copy(X, X + len, XX.begin());
+      // Skyline_Print(XX);
+      p.clear();
+      q.clear();
+      Q.clear();
     }
-    double time_start = omp_get_wtime();
-    vector<uint32_t> Q = SS_Two(q);
-    double time_end = omp_get_wtime();
-    Ptime += time_end - time_start;
-    uint64_t comm_end = 0;
-    for(int j = 0; j< THs; j++){
-      comm_end+=Iot[j]->counter;
+    delete[] SS_Con;
+    delete[] SS_C;
+    delete[] SS_L;
+    for(int j = 0; j< SS_G[0][0] * SS_G[0][1]; j++)
+    {
+      delete[] SS_Skyline[j];
     }
-    PCom += comm_end-comm_start;
-    uint64_t *X = SkylineRes_T(Q,len);
-    double time_end2 = omp_get_wtime();
-    Qtime+= time_end2 - time_end;
-    uint64_t comm_end2 = 0;
-    for(int j = 0; j< THs; j++){
-      comm_end2+=Iot[j]->counter;
+    delete[] SS_Skyline;
+    for(int j = 0; j< m; j++)
+    {
+      delete[] SS_G[j];
     }
-    QCom += comm_end2-comm_end;
-    QCom1 += com1;
-    QCom2 += com2;
-    vector<uint64_t> XX(len);
-    copy(X,X+len,XX.begin());
-    Pupload += ss_upload;
-    Pprocess += ss_process;
-    Qdummy += ss_dummy;
-    Qmask += ss_mask;
-    Qselect += ss_select;
-    Qlen += len;
-    // StoreSKyline();
-    // vector<uint64_t> XX(len);
-    // copy(X, X + len, XX.begin());
-    // Skyline_Print(XX);
-    p.clear();
-    q.clear();
-    Q.clear();
-  }
-  delete[] SS_Con;
-  delete[] SS_C;
-  delete[] SS_L;
-  for(int j = 0; j< SS_G[0][0] * SS_G[0][1]; j++)
-  {
-    delete[] SS_Skyline[j];
-  }
-  delete[] SS_Skyline;
-  for(int j = 0; j< m; j++)
-  {
-    delete[] SS_G[j];
-  }
-  delete[] SS_G;
-  Ptime = Ptime/ itrs;
-  PCom = PCom/ itrs;
-  Ptime = Ptime/ itrs;
-  Pupload = Pupload/ itrs;
-  Pprocess = Pprocess/ itrs;
-  QCom = QCom/ itrs;
-  QCom1 = QCom1/ itrs;
-  QCom2 = QCom2/ itrs;
-  Qdummy = Qdummy/ itrs;
-  Qmask = Qmask/ itrs;
-  Qselect = Qselect/ itrs;
-  Qlen = Qlen/ itrs;
+    delete[] SS_G;
+    Ptime = Ptime/ itrs;
+    PCom = PCom/ itrs;
+    Ptime = Ptime/ itrs;
+    Pupload = Pupload/ itrs;
+    Pprocess = Pprocess/ itrs;
+    QCom = QCom/ itrs;
+    QCom1 = QCom1/ itrs;
+    QCom2 = QCom2/ itrs;
+    Qdummy = Qdummy/ itrs;
+    Qmask = Qmask/ itrs;
+    Qselect = Qselect/ itrs;
+    Qlen = Qlen/ itrs;
     if (party == ALICE)
     {
       ofstream outfile;
@@ -12617,347 +9507,8 @@ int mainq1(int argc, char **argv)
   return 0;
 }
 
+//whole time
 int mainwq(int argc, char **argv)
-{
-  ArgMapping amap;
-  amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
-  amap.arg("p", port, "Port Number");
-  amap.arg("ip", address, "IP Address of server (ALICE)");
-  amap.parse(argc, argv);
-  for (int i = 0; i < THs; i++)
-  {
-    Iot[i] = new NetIO(party == 1 ? nullptr : address.c_str(), port + i * 3);
-    Otpackt[i] = new OTPack<NetIO>(Iot[i], party);
-    Auxt[i] = new AuxProtocols(party, Iot[i], Otpackt[i]);
-    Prodt[i] = new LinearOT(party, Iot[i], Otpackt[i]);
-  }
-  srand(time(0)+party);
-  int *t = new int[7];
-  t[0] = 1000;
-  t[1] = 1000;
-  string filen[2] ={"diabets.txt", "obesity.txt"};
-  string datan[2] ={"diabets-", "obesity-"};
-  for (int i = 0; i < 2; i++)
-  {
-    filename = filen[i];
-    dataname = datan[i];
-    n = t[i];
-    data_path = "./data/" + filename;
-    vector<vector<uint32_t>> p;
-    loadP(p, data_path);
-    loadG(p, G);
-    m = p[0].size();
-    double Ptime = 0, PCom = 0, Pupload = 0, Pprocess = 0;
-    double Qtime = 0, QCom = 0, Qdummy = 0, Qselect = 0;
-    int itrs = 20;
-    for (int itr = 0; itr < itrs; itr++)
-  {
-    vector<uint32_t> q(m);
-    for (int j = 0; j < m; j++)
-    {
-      q[j] = p[rand()%n][j];
-    }
-    if (party == ALICE)
-    {
-      uint32_t *q0 = new uint32_t[m];
-      for (int j = 0; j < m; j++)
-      {
-        q0[j] = q[j];
-      }
-      Iot[i]->send_data(q0, m * sizeof(uint32_t));
-      delete[] q0;
-    }
-    else
-    {
-      uint32_t *q0 = new uint32_t[m];
-      Iot[i]->recv_data(q0, m * sizeof(uint32_t));
-      for (int j = 0; j < m; j++)
-      {
-        q[j] = q0[j];
-      }
-      delete[] q0;
-    } 
-    cout<<"q:"<<q[0]<<"\t"<<q[1]<<endl;
-    plain(p, q);
-    uint64_t comm_start = 0;
-    for(int j = 0; j< THs; j++){
-      comm_start+=Iot[j]->counter;
-    }
-    double time_start = omp_get_wtime();
-    vector<uint32_t> Q = SS_Two(q);
-    double time_end = omp_get_wtime();
-    Ptime += time_end - time_start;
-    uint64_t comm_end = 0;
-    for(int j = 0; j< THs; j++){
-      comm_end+=Iot[j]->counter;
-    }
-    PCom += comm_end-comm_start;
-    uint32_t len = 0;
-    uint64_t *X = SkylineRes(Q,len);
-    double time_end2 = omp_get_wtime();
-    Qtime+= time_end2 - time_end;
-    uint64_t comm_end2 = 0;
-    for(int j = 0; j< THs; j++){
-      comm_end2+=Iot[j]->counter;
-    }
-    QCom += comm_end2-comm_end;
-    vector<uint64_t> XX(len);
-    copy(X,X+len,XX.begin());
-    Pupload += ss_upload;
-    Pprocess += ss_process;
-    Qdummy += ss_dummy;
-    Qselect += ss_select;
-    // StoreSKyline();
-    // vector<uint64_t> XX(len);
-    // copy(X, X + len, XX.begin());
-    // Skyline_Print(XX);
-    p.clear();
-    q.clear();
-    Q.clear();
-  }
-  delete[] SS_Con;
-  delete[] SS_C;
-  delete[] SS_L;
-  for(int j = 0; j< SS_G[0][0] * SS_G[0][1]; j++)
-  {
-    delete[] SS_Skyline[j];
-  }
-  delete[] SS_Skyline;
-  for(int j = 0; j< m; j++)
-  {
-    delete[] SS_G[j];
-  }
-  delete[] SS_G;
-  Ptime = Ptime/ itrs;
-  PCom = PCom/ itrs;
-  Ptime = Ptime/ itrs;
-  Pupload = Pupload/ itrs;
-  Pprocess = Pprocess/ itrs;
-  QCom = QCom/ itrs;
-  Qdummy = Qdummy/ itrs;
-  Qselect = Qselect/ itrs;
-    if (party == ALICE)
-    {
-      ofstream outfile;
-      outfile.open("../../tests/out_A.txt", ios::app | ios::in);
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
-      cout << "Alice Share Time\t" << RED << Pupload << " s" << RESET << endl;
-      cout << "Alice Process Time\t" << RED << Pprocess << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
-      outfile << " -------------------------------------" << endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "NonThread"  << endl;
-      // outfile << "n = " + to_string(n) + " " + dataname + "Thread" << endl;  
-      outfile << " Alice Total Time:" << Ptime << " s" << endl;
-      outfile << " Alice Share Time:" << Pupload << " s" << endl;
-      outfile << " Alice Process Time:" << Pprocess << " s" << endl;
-      outfile << " Alice Communication:" << PCom << " Bytes" << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Alice Select Time:" << Qselect << " s" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
-      outfile << " -------------------------------------" << endl;
-      outfile.close();
-    }
-    else
-    {
-      ofstream outfile;
-      outfile.open("../../tests/out_B.txt", ios::app | ios::in);
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
-      cout << "Bob Share Time\t" << RED << Pupload << " s" << RESET << endl;
-      cout << "Bob Process Time\t" << RED << Pprocess << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
-      outfile << " -------------------------------------" << endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "NonThread"  << endl;
-      // outfile << "n = " + to_string(n) + " " + dataname + "Thread" << endl;  
-      outfile << " Bob Total Time:" << Ptime << " s" << endl;
-      outfile << " Bob Share Time:" << Pupload << " s" << endl;
-      outfile << " Bob Process Time:" << Pprocess << " s" << endl;
-      outfile << " Bob Communication:" << PCom << " Bytes" << endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Bob Select Time:" << Qselect << " s" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
-      outfile << " -------------------------------------" << endl;
-      outfile.close();
-    }
-  } 
-  for (int i = 0; i < 2; i++)
-  {
-    filename = filen[i];
-    dataname = datan[i];
-    n = t[i];
-    data_path = "./data/" + filename;
-    vector<vector<uint32_t>> p;
-    loadP(p, data_path);
-    loadG(p, G);
-    m = p[0].size();
-    double Ptime = 0, PCom = 0, Pupload = 0, Pprocess = 0;
-    double Qtime = 0, QCom = 0, Qdummy = 0, Qselect = 0;
-    int itrs = 20;
-    for (int itr = 0; itr < itrs; itr++)
-  {
-    vector<uint32_t> q(m);
-    for (int j = 0; j < m; j++)
-    {
-      q[j] = p[rand()%n][j];
-    }
-    if (party == ALICE)
-    {
-      uint32_t *q0 = new uint32_t[m];
-      for (int j = 0; j < m; j++)
-      {
-        q0[j] = q[j];
-      }
-      Iot[i]->send_data(q0, m * sizeof(uint32_t));
-      delete[] q0;
-    }
-    else
-    {
-      uint32_t *q0 = new uint32_t[m];
-      Iot[i]->recv_data(q0, m * sizeof(uint32_t));
-      for (int j = 0; j < m; j++)
-      {
-        q[j] = q0[j];
-      }
-      delete[] q0;
-    } 
-    cout<<"q:"<<q[0]<<"\t"<<q[1]<<endl;
-    plain(p, q);
-    uint64_t comm_start = 0;
-    for(int j = 0; j< THs; j++){
-      comm_start+=Iot[j]->counter;
-    }
-    double time_start = omp_get_wtime();
-    vector<uint32_t> Q = SS_Two(q);
-    double time_end = omp_get_wtime();
-    Ptime += time_end - time_start;
-    uint64_t comm_end = 0;
-    for(int j = 0; j< THs; j++){
-      comm_end+=Iot[j]->counter;
-    }
-    PCom += comm_end-comm_start;
-    uint32_t len = 0;
-    uint64_t *X = SkylineRes_T(Q,len);
-    double time_end2 = omp_get_wtime();
-    Qtime+= time_end2 - time_end;
-    uint64_t comm_end2 = 0;
-    for(int j = 0; j< THs; j++){
-      comm_end2+=Iot[j]->counter;
-    }
-    QCom += comm_end2-comm_end;
-    vector<uint64_t> XX(len);
-    copy(X,X+len,XX.begin());
-    Pupload += ss_upload;
-    Pprocess += ss_process;
-    Qdummy += ss_dummy;
-    Qselect += ss_select;
-    // StoreSKyline();
-    // vector<uint64_t> XX(len);
-    // copy(X, X + len, XX.begin());
-    // Skyline_Print(XX);
-    p.clear();
-    q.clear();
-    Q.clear();
-  }
-  delete[] SS_Con;
-  delete[] SS_C;
-  delete[] SS_L;
-  for(int j = 0; j< SS_G[0][0] * SS_G[0][1]; j++)
-  {
-    delete[] SS_Skyline[j];
-  }
-  delete[] SS_Skyline;
-  for(int j = 0; j< m; j++)
-  {
-    delete[] SS_G[j];
-  }
-  delete[] SS_G;
-  Ptime = Ptime/ itrs;
-  PCom = PCom/ itrs;
-  Ptime = Ptime/ itrs;
-  Pupload = Pupload/ itrs;
-  Pprocess = Pprocess/ itrs;
-  QCom = QCom/ itrs;
-  Qdummy = Qdummy/ itrs;
-  Qselect = Qselect/ itrs;
-    if (party == ALICE)
-    {
-      ofstream outfile;
-      outfile.open("../../tests/out_A.txt", ios::app | ios::in);
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
-      cout << "Alice Share Time\t" << RED << Pupload << " s" << RESET << endl;
-      cout << "Alice Process Time\t" << RED << Pprocess << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
-      outfile << " -------------------------------------" << endl;
-      // outfile << "n = " + to_string(n) + " " + dataname + "NonThread"  << endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "Thread" << endl;  
-      outfile << " Alice Total Time:" << Ptime << " s" << endl;
-      outfile << " Alice Share Time:" << Pupload << " s" << endl;
-      outfile << " Alice Process Time:" << Pprocess << " s" << endl;
-      outfile << " Alice Communication:" << PCom << " Bytes" << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Alice Select Time:" << Qselect << " s" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
-      outfile << " -------------------------------------" << endl;
-      outfile.close();
-    }
-    else
-    {
-      ofstream outfile;
-      outfile.open("../../tests/out_B.txt", ios::app | ios::in);
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
-      cout << "Bob Share Time\t" << RED << Pupload << " s" << RESET << endl;
-      cout << "Bob Process Time\t" << RED << Pprocess << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
-      outfile << " -------------------------------------" << endl;
-      // outfile << "n = " + to_string(n) + " " + dataname + "NonThread"  << endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "Thread" << endl;  
-      outfile << " Bob Total Time:" << Ptime << " s" << endl;
-      outfile << " Bob Share Time:" << Pupload << " s" << endl;
-      outfile << " Bob Process Time:" << Pprocess << " s" << endl;
-      outfile << " Bob Communication:" << PCom << " Bytes" << endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Bob Select Time:" << Qselect << " s" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
-      outfile << " -------------------------------------" << endl;
-      outfile.close();
-    }
-  } 
-  delete[] t;
-  for (int i = 0; i < THs; i++)
-  {
-    delete Auxt[i];
-    delete Prodt[i];
-    delete Otpackt[i];
-    delete Iot[i];
-  }
-  return 0;
-}
-
-// select quadrant
-int main(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
@@ -12982,15 +9533,186 @@ int main(int argc, char **argv)
   t[6] = 9000;
   string filen[3] ={"/small-correlated.txt","/small-uniformly-distributed.txt","/small-anti-correlated.txt"};
   string datan[3] ={"corr-","unif-","anti-"};
-  //  n = 5000;
-  //   data_path = "./data/input=10000/size=" + to_string(n) + filename;
-  //   vector<vector<uint32_t>> p;
-  //   loadP(p, data_path);
-  //   loadG(p, G);
-  //   m = p[0].size();
-  //   SSG(G, SS_G);
-  //   Store("1-");
-  for (int kk = 0; kk < 1; kk++)
+  for (int kk = 0; kk < 3; kk++)
+  {
+    filename = filen[kk];
+    dataname = datan[kk];
+    for (int i = 2; i <= 6; i++)
+    {
+      n = t[i];
+      data_path = "./data/input=10000/size=" + to_string(n) + filename;
+      vector<vector<uint32_t>> p;
+      loadP(p, data_path);
+      loadG(p, G);
+      vector<uint32_t> q(m);
+      q[0] = 1000 + rand()%7000;
+      q[1] = 1000 + rand()%7000;
+      if (party == ALICE)
+      {
+        uint32_t *q0 = new uint32_t[m];
+        for (int j = 0; j < m; j++)
+        {
+          q0[j] = q[j];
+        }
+        Iot[i]->send_data(q0, m * sizeof(uint32_t));
+        delete[] q0;
+      }
+      else
+      {
+        uint32_t *q0 = new uint32_t[m];
+        Iot[i]->recv_data(q0, m * sizeof(uint32_t));
+        for (int j = 0; j < m; j++)
+        {
+          q[j] = q0[j];
+        }
+        delete[] q0;
+      } 
+      cout<<"q:"<<q[0]<<"\t"<<q[1]<<endl;
+      plain(p, q);
+      uint64_t comm_start = 0;
+      for(int j = 0; j< THs; j++){
+        comm_start+=Iot[j]->counter;
+      }
+      double time_start = omp_get_wtime();
+      vector<uint32_t> Q = SS_Two(q);
+      double time_end = omp_get_wtime();
+      double Ptime = time_end - time_start;
+      uint64_t comm_end = 0;
+      for(int j = 0; j< THs; j++){
+        comm_end+=Iot[j]->counter;
+      }
+      double PCom = comm_end-comm_start;
+      uint32_t len = 0;
+      uint64_t *X = SkylineRes(Q,len);
+      double time_end2 = omp_get_wtime();
+      double Qtime = time_end2 - time_end;
+      uint64_t comm_end2 = 0;
+      for(int j = 0; j< THs; j++){
+        comm_end2+=Iot[j]->counter;
+      }
+      double QCom = comm_end2-comm_end;
+      vector<uint64_t> XX(len);
+      copy(X,X+len,XX.begin());
+      delete[] SS_Con;
+      delete[] SS_C;
+      delete[] SS_L;
+      for(int j = 0; j< SS_G[0][0] * SS_G[0][1]; j++)
+      {
+        delete[] SS_Skyline[j];
+      }
+      delete[] SS_Skyline;
+      for(int j = 0; j< m; j++)
+      {
+        delete[] SS_G[j];
+      }
+      delete[] SS_G;
+      q.clear();
+      Q.clear();
+      Skyline_Print(XX);
+      if (party == ALICE)
+      {
+        ofstream outfile;
+        outfile.open("../../tests/out_A.txt", ios::app | ios::in);
+        cout << "n = " + to_string(n) + " " + dataname << endl;
+        cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
+        cout << "Alice Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+        cout << "Alice Process Time\t" << RED << ss_process << " s" << RESET << endl;
+        cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+        cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
+        cout << "Alice Dummy Time\t" << RED << ss_dummy << " s" << RESET << endl;
+        cout << "Alice Select Time\t" << RED << ss_select << " s" << RESET << endl;
+        cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+        outfile << " -------------------------------------" << endl;
+        outfile << "n = " + to_string(n) + " " + dataname << endl;
+        outfile << " Alice Total Time:" << Ptime << " s" << endl;
+        outfile << " Alice Share Time:" << ss_upload << " s" << endl;
+        outfile << " Alice Process Time:" << ss_process << " s" << endl;
+        outfile << " Alice Communication:" << PCom << " Bytes" << endl;
+        outfile << " Alice Total Time:" << Qtime << " s" << endl;
+        outfile << " Alice Dummy Time:" << ss_dummy << " s" << endl;
+        outfile << " Alice Mask Time:" << ss_mask << " s" << endl;
+        outfile << " Alice Select Time:" << ss_select << " s" << endl;
+        outfile << " Alice Communication:" << QCom << " Bytes" << endl;
+        for (uint64_t b : XX)
+        {
+          outfile << b << "\t";
+        }
+        outfile << endl;
+        outfile << " -------------------------------------" << endl;
+        outfile.close();
+      }
+      else
+      {
+        ofstream outfile;
+        outfile.open("../../tests/out_B.txt", ios::app | ios::in);
+        cout << "n = " + to_string(n) + " " + dataname << endl;
+        cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
+        cout << "Bob Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+        cout << "Bob Process Time\t" << RED << ss_process << " s" << RESET << endl;
+        cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+        cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
+        cout << "Bob Dummy Time\t" << RED << ss_dummy << " s" << RESET << endl;
+        cout << "Bob Select Time\t" << RED << ss_select << " s" << RESET << endl;
+        cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+        outfile << " -------------------------------------" << endl;
+        outfile << "n = " + to_string(n) + " " + dataname << endl;
+        outfile << " Bob Total Time:" << Ptime << " s" << endl;
+        outfile << " Bob Share Time:" << ss_upload << " s" << endl;
+        outfile << " Bob Process Time:" << ss_process << " s" << endl;
+        outfile << " Bob Communication:" << PCom << " Bytes" << endl;
+        outfile << " Bob Total Time:" << Qtime << " s" << endl;
+        outfile << " Bob Dummy Time:" << ss_dummy << " s" << endl;
+        outfile << " Bob Mask Time:" << ss_mask << " s" << endl;
+        outfile << " Bob Select Time:" << ss_select << " s" << endl;
+        outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+        for (uint64_t b : XX)
+        {
+          outfile << b << "\t";
+        }
+        outfile << endl;
+        outfile << " -------------------------------------" << endl;
+        outfile.close();
+      }
+    }
+  }
+  delete[] t;
+  for (int i = 0; i < THs; i++)
+  {
+    delete Auxt[i];
+    delete Prodt[i];
+    delete Otpackt[i];
+    delete Iot[i];
+  }
+  return 0;
+}
+
+// Quadrant skyline query
+int mainQua(int argc, char **argv)
+{
+  ArgMapping amap;
+  amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
+  amap.arg("p", port, "Port Number");
+  amap.arg("ip", address, "IP Address of server (ALICE)");
+  amap.parse(argc, argv);
+  for (int i = 0; i < THs; i++)
+  {
+    Iot[i] = new NetIO(party == 1 ? nullptr : address.c_str(), port + i * 3);
+    Otpackt[i] = new OTPack<NetIO>(Iot[i], party);
+    Auxt[i] = new AuxProtocols(party, Iot[i], Otpackt[i]);
+    Prodt[i] = new LinearOT(party, Iot[i], Otpackt[i]);
+  }
+  srand(time(0)+party);
+  int *t = new int[7];
+  t[0] = 10;
+  t[1] = 100;
+  t[2] = 1000;
+  t[3] = 3000;
+  t[4] = 5000;
+  t[5] = 7000;
+  t[6] = 9000;
+  string filen[3] ={"/small-correlated.txt","/small-uniformly-distributed.txt","/small-anti-correlated.txt"};
+  string datan[3] ={"corr-","unif-","anti-"};
+  for (int kk = 0; kk < 3; kk++)
   {
     filename = filen[kk];
     dataname = datan[kk];
@@ -13156,7 +9878,7 @@ int main(int argc, char **argv)
       }
     }
   }
-  for (int kk = 0; kk < 1; kk++)
+  for (int kk = 0; kk < 3; kk++)
   {
     filename = filen[kk];
     dataname = datan[kk];
@@ -13271,7 +9993,7 @@ int main(int argc, char **argv)
         ofstream outfile;
         outfile.open("../../tests/out_A_qua.txt", ios::app | ios::in);
         outfile << " -------------------------------------" << endl;
-        // outfile << "n = " + to_string(n) + " " + dataname + "NonThread" << endl;
+        // outfile << "n = " + to_string(n) + " " + dataname + "NonThread:Quadrant" << endl;
         outfile << "n = " + to_string(n) + " " + dataname + "Thread:Quadrant" << endl;
         outfile << " Alice Total Time:" << Qtime << " s" << endl;
         outfile << " Alice Read Time:" << Qread << " s" << endl;
@@ -13302,7 +10024,7 @@ int main(int argc, char **argv)
         ofstream outfile;
         outfile.open("../../tests/out_B_qua.txt", ios::app | ios::in);
         outfile << " -------------------------------------" << endl;
-        // outfile << "n = " + to_string(n) + " " + dataname + "NonThread"<< endl;
+        // outfile << "n = " + to_string(n) + " " + dataname + "NonThread:Quadrant"<< endl;
         outfile << "n = " + to_string(n) + " " + dataname + "Thread:Quadrant"<< endl;
         outfile << " Bob Total Time:" << Qtime << " s" << endl;
         outfile << " Bob Read Time:" << Qread << " s" << endl;
@@ -13333,8 +10055,8 @@ int main(int argc, char **argv)
   return 0;
 }
 
-// select "do" quadrant
-int maindd(int argc, char **argv)
+// Other("do") quadrant skyline query
+int maindoQua(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
@@ -13693,123 +10415,7 @@ int maindd(int argc, char **argv)
 }
 
 //generate all quadrant skyline diagram
-int main0(int argc, char **argv)
-{
-  ArgMapping amap;
-  amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
-  amap.arg("p", port, "Port Number");
-  amap.arg("ip", address, "IP Address of server (ALICE)");
-  amap.parse(argc, argv);
-  for (int i = 0; i < THs; i++)
-  {
-    Iot[i] = new NetIO(party == 1 ? nullptr : address.c_str(), port + i * 3);
-    Otpackt[i] = new OTPack<NetIO>(Iot[i], party);
-    Auxt[i] = new AuxProtocols(party, Iot[i], Otpackt[i]);
-    Prodt[i] = new LinearOT(party, Iot[i], Otpackt[i]);
-  }
-  srand(time(0)+party);
-  int *t = new int[7];
-  // t[0] = 10;
-  // t[1] = 100;
-  // t[2] = 1000;
-  // t[3] = 3000;
-  // t[4] = 5000;
-  // t[5] = 7000;
-  // t[6] = 9000;
-  // string filen[3] ={"/small-correlated.txt","/small-uniformly-distributed.txt","/small-anti-correlated.txt"};
-  // string datan[3] ={"corr-","unif-","anti-"};
-  // for (int kk = 2; kk < 3; kk++)
-  // {
-  //   filename = filen[kk];
-  //   dataname = datan[kk];
-  // for (int i = 5; i <= 5; i++)
-  // {
-  //   n = t[i];
-  //   data_path = "./data/input=10000/size=" + to_string(n) + filename;
-  string filen[2] ={"diabets.txt", "obesity.txt"};
-  string datan[2] ={"diabets-", "obesity-"};
-  for (int i = 0; i < 2; i++)
-  {
-    filename = filen[i];
-    dataname = datan[i];
-    n = 1000;
-    data_path = "./data/" + filename;  
-    vector<vector<uint32_t>> p;
-    loadP(p, data_path);
-    loadG(p, G);
-    vector<uint32_t> q{7000, 5000};
-    // vector<uint32_t> q{20, 20};
-    // plain(p, q);
-    uint64_t comm_start = 0;
-    for(int j = 0; j< THs; j++){
-      comm_start+=Iot[j]->counter;
-    }
-    double time_start = omp_get_wtime();
-    dynamicSkyline(G,q);
-    // vector<uint32_t> Q = SS_Two(q);
-    // SS_Result(q, Q);
-    double time_end = omp_get_wtime();
-    double Ptime = time_end - time_start;
-    uint64_t comm_end = 0;
-    for(int j = 0; j< THs; j++){
-      comm_end+=Iot[j]->counter;
-    }
-    double PCom = comm_end-comm_start;
-    q.clear();
-    // cout << "n = " + to_string(n) + " " + dataname << endl;
-    // cout << "Total Time\t" << RED << Ptime << " s" << RESET << endl;
-    // cout << "Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-    if (party == ALICE)
-    {
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
-      cout << "Alice Share Time\t" << RED << ss_upload << " s" << RESET << endl;
-      cout << "Alice Process Time\t" << RED << ss_process << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      // ofstream outfile;
-      // outfile.open("../../tests/out_A_C94.txt", ios::app | ios::in);
-      // outfile << " -------------------------------------" << endl;
-      // outfile << "n = " + to_string(n) + " " + dataname << endl;
-      // outfile << " Alice Total Time:" << Ptime << " s" << endl;
-      // outfile << " Alice Share Time:" << ss_upload << " s" << endl;
-      // outfile << " Alice Process Time:" << ss_process << " s" << endl;
-      // outfile << " Alice Communication:" << PCom << " Bytes" << endl;
-      // outfile << " -------------------------------------" << endl;
-      // outfile.close();
-    }
-    else
-    {
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
-      cout << "Bob Share Time\t" << RED << ss_upload << " s" << RESET << endl;
-      cout << "Bob Process Time\t" << RED << ss_process << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      // ofstream outfile;
-      // outfile.open("../../tests/out_B_C94.txt", ios::app | ios::in);
-      // outfile << " -------------------------------------" << endl;
-      // outfile << "n = " + to_string(n) + " " + dataname << endl;
-      // outfile << " Bob Total Time:" << Ptime << " s" << endl;
-      // outfile << " Bob Share Time:" << ss_upload << " s" << endl;
-      // outfile << " Bob Process Time:" << ss_process << " s" << endl;
-      // outfile << " Bob Communication:" << PCom << " Bytes" << endl;
-      // outfile << " -------------------------------------" << endl;
-      // outfile.close();
-    }
-  }
-  // }
-  delete[] t;
-  for (int i = 0; i < THs; i++)
-  {
-    delete Auxt[i];
-    delete Prodt[i];
-    delete Otpackt[i];
-    delete Iot[i];
-  }
-  return 0;
-}
-
-//whole time
-int mainw0(int argc, char **argv)
+int mainGenQua(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
@@ -13834,48 +10440,122 @@ int mainw0(int argc, char **argv)
   t[6] = 9000;
   string filen[3] ={"/small-correlated.txt","/small-uniformly-distributed.txt","/small-anti-correlated.txt"};
   string datan[3] ={"corr-","unif-","anti-"};
-  for (int kk = 1; kk < 3; kk++)
+  for (int kk = 0; kk < 3; kk++)
   {
     filename = filen[kk];
     dataname = datan[kk];
-  for (int i = 3; i <= 3; i++)
+    for (int i = 2; i <= 6; i++)
+    {
+      n = t[i];
+      data_path = "./data/input=10000/size=" + to_string(n) + filename; 
+      vector<vector<uint32_t>> p;
+      loadP(p, data_path);
+      loadG(p, G);
+      vector<uint32_t> q{7000, 5000};
+      // plain(p, q);
+      uint64_t comm_start = 0;
+      for(int j = 0; j< THs; j++){
+        comm_start+=Iot[j]->counter;
+      }
+      double time_start = omp_get_wtime();
+      dynamicSkyline(G,q);
+      // vector<uint32_t> Q = SS_Two(q);
+      // SS_Result(q, Q);
+      double time_end = omp_get_wtime();
+      double Ptime = time_end - time_start;
+      uint64_t comm_end = 0;
+      for(int j = 0; j< THs; j++){
+        comm_end+=Iot[j]->counter;
+      }
+      double PCom = comm_end-comm_start;
+      q.clear();
+      if (party == ALICE)
+      {
+        cout << "n = " + to_string(n) + " " + dataname << endl;
+        cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
+        cout << "Alice Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+        cout << "Alice Process Time\t" << RED << ss_process << " s" << RESET << endl;
+        cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+        ofstream outfile;
+        outfile.open("../../tests/out_A.txt", ios::app | ios::in);
+        outfile << " -------------------------------------" << endl;
+        outfile << "n = " + to_string(n) + " " + dataname << endl;
+        outfile << " Alice Total Time:" << Ptime << " s" << endl;
+        outfile << " Alice Share Time:" << ss_upload << " s" << endl;
+        outfile << " Alice Process Time:" << ss_process << " s" << endl;
+        outfile << " Alice Communication:" << PCom << " Bytes" << endl;
+        outfile << " -------------------------------------" << endl;
+        outfile.close();
+      }
+      else
+      {
+        cout << "n = " + to_string(n) + " " + dataname << endl;
+        cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
+        cout << "Bob Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+        cout << "Bob Process Time\t" << RED << ss_process << " s" << RESET << endl;
+        cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+        ofstream outfile;
+        outfile.open("../../tests/out_B.txt", ios::app | ios::in);
+        outfile << " -------------------------------------" << endl;
+        outfile << "n = " + to_string(n) + " " + dataname << endl;
+        outfile << " Bob Total Time:" << Ptime << " s" << endl;
+        outfile << " Bob Share Time:" << ss_upload << " s" << endl;
+        outfile << " Bob Process Time:" << ss_process << " s" << endl;
+        outfile << " Bob Communication:" << PCom << " Bytes" << endl;
+        outfile << " -------------------------------------" << endl;
+        outfile.close();
+      }
+    }
+  }
+  delete[] t;
+  for (int i = 0; i < THs; i++)
   {
-    n = t[i];
-    data_path = "./data/input=10000/size=" + to_string(n) + filename;
+    delete Auxt[i];
+    delete Prodt[i];
+    delete Otpackt[i];
+    delete Iot[i];
+  }
+  return 0;
+}
+
+//generate Other("do") all quadrant skyline diagram
+int maindoGenQua(int argc, char **argv)
+{
+  ArgMapping amap;
+  amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
+  amap.arg("p", port, "Port Number");
+  amap.arg("ip", address, "IP Address of server (ALICE)");
+  amap.parse(argc, argv);
+  for (int i = 0; i < THs; i++)
+  {
+    Iot[i] = new NetIO(party == 1 ? nullptr : address.c_str(), port + i * 3);
+    Otpackt[i] = new OTPack<NetIO>(Iot[i], party);
+    Auxt[i] = new AuxProtocols(party, Iot[i], Otpackt[i]);
+    Prodt[i] = new LinearOT(party, Iot[i], Otpackt[i]);
+  }
+  srand(time(0)+party);
+  int *t = new int[7];
+  string filen[2] ={"diabets.txt", "obesity.txt"};
+  string datan[2] ={"diabets-", "obesity-"};
+  for (int i = 0; i < 2; i++)
+  {
+    filename = filen[i];
+    dataname = datan[i];
+    n = 1000;
+    data_path = "./data/" + filename;  
     vector<vector<uint32_t>> p;
     loadP(p, data_path);
     loadG(p, G);
-    vector<uint32_t> q(m);
-    q[0] = 1000 + rand()%7000;
-    q[1] = 1000 + rand()%7000;
-    if (party == ALICE)
-    {
-      uint32_t *q0 = new uint32_t[m];
-      for (int j = 0; j < m; j++)
-      {
-        q0[j] = q[j];
-      }
-      Iot[i]->send_data(q0, m * sizeof(uint32_t));
-      delete[] q0;
-    }
-    else
-    {
-      uint32_t *q0 = new uint32_t[m];
-      Iot[i]->recv_data(q0, m * sizeof(uint32_t));
-      for (int j = 0; j < m; j++)
-      {
-        q[j] = q0[j];
-      }
-      delete[] q0;
-    } 
-    cout<<"q:"<<q[0]<<"\t"<<q[1]<<endl;
-    plain(p, q);
+    vector<uint32_t> q{20, 20};
+    // plain(p, q);
     uint64_t comm_start = 0;
     for(int j = 0; j< THs; j++){
       comm_start+=Iot[j]->counter;
     }
     double time_start = omp_get_wtime();
-    vector<uint32_t> Q = SS_Two(q);
+    dynamicSkyline(G,q);
+    // vector<uint32_t> Q = SS_Two(q);
+    // SS_Result(q, Q);
     double time_end = omp_get_wtime();
     double Ptime = time_end - time_start;
     uint64_t comm_end = 0;
@@ -13883,96 +10563,43 @@ int mainw0(int argc, char **argv)
       comm_end+=Iot[j]->counter;
     }
     double PCom = comm_end-comm_start;
-    uint32_t len = 0;
-    uint64_t *X = SkylineRes(Q,len);
-    double time_end2 = omp_get_wtime();
-    double Qtime = time_end2 - time_end;
-    uint64_t comm_end2 = 0;
-    for(int j = 0; j< THs; j++){
-      comm_end2+=Iot[j]->counter;
-    }
-    double QCom = comm_end2-comm_end;
-    vector<uint64_t> XX(len);
-    copy(X,X+len,XX.begin());
-    delete[] SS_Con;
-    delete[] SS_C;
-    delete[] SS_L;
-    for(int j = 0; j< SS_G[0][0] * SS_G[0][1]; j++)
-    {
-      delete[] SS_Skyline[j];
-    }
-    delete[] SS_Skyline;
-    for(int j = 0; j< m; j++)
-    {
-      delete[] SS_G[j];
-    }
-    delete[] SS_G;
     q.clear();
-    Q.clear();
-    Skyline_Print(XX);
     if (party == ALICE)
     {
-      ofstream outfile;
-      outfile.open("../../tests/out_A.txt", ios::app | ios::in);
       cout << "n = " + to_string(n) + " " + dataname << endl;
       cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
       cout << "Alice Share Time\t" << RED << ss_upload << " s" << RESET << endl;
       cout << "Alice Process Time\t" << RED << ss_process << " s" << RESET << endl;
       cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << ss_dummy << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << ss_select << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      ofstream outfile;
+      outfile.open("../../tests/out_A.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       outfile << "n = " + to_string(n) + " " + dataname << endl;
       outfile << " Alice Total Time:" << Ptime << " s" << endl;
       outfile << " Alice Share Time:" << ss_upload << " s" << endl;
       outfile << " Alice Process Time:" << ss_process << " s" << endl;
       outfile << " Alice Communication:" << PCom << " Bytes" << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Dummy Time:" << ss_dummy << " s" << endl;
-      outfile << " Alice Select Time:" << ss_select << " s" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
-      for (uint64_t b : XX)
-      {
-        outfile << b << "\t";
-      }
-      outfile << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
     else
     {
-      ofstream outfile;
-      outfile.open("../../tests/out_B.txt", ios::app | ios::in);
       cout << "n = " + to_string(n) + " " + dataname << endl;
       cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
       cout << "Bob Share Time\t" << RED << ss_upload << " s" << RESET << endl;
       cout << "Bob Process Time\t" << RED << ss_process << " s" << RESET << endl;
       cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << ss_dummy << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << ss_select << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      ofstream outfile;
+      outfile.open("../../tests/out_B.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       outfile << "n = " + to_string(n) + " " + dataname << endl;
       outfile << " Bob Total Time:" << Ptime << " s" << endl;
       outfile << " Bob Share Time:" << ss_upload << " s" << endl;
       outfile << " Bob Process Time:" << ss_process << " s" << endl;
       outfile << " Bob Communication:" << PCom << " Bytes" << endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Dummy Time:" << ss_dummy << " s" << endl;
-      outfile << " Bob Select Time:" << ss_select << " s" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
-      for (uint64_t b : XX)
-      {
-        outfile << b << "\t";
-      }
-      outfile << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
-  }
   }
   delete[] t;
   for (int i = 0; i < THs; i++)
@@ -14127,7 +10754,8 @@ int main01(int argc, char **argv)
   return 0;
 }
 
-int main000(int argc, char **argv)
+//Test Comparison
+int mainTestCmp(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
@@ -14155,74 +10783,8 @@ int main000(int argc, char **argv)
   return 0;
 }
 
-// test file
-int main0000(int argc, char **argv)
-{
-  ArgMapping amap;
-  amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
-  amap.arg("p", port, "Port Number");
-  amap.arg("ip", address, "IP Address of server (ALICE)");
-  amap.parse(argc, argv);
-  for (int i = 0; i < THs; i++)
-  {
-    Iot[i] = new NetIO(party == 1 ? nullptr : address.c_str(), port + i * 3);
-    Otpackt[i] = new OTPack<NetIO>(Iot[i], party);
-    Auxt[i] = new AuxProtocols(party, Iot[i], Otpackt[i]);
-    Prodt[i] = new LinearOT(party, Iot[i], Otpackt[i]);
-  }
-  srand(time(0)+party);
-  int *t = new int[7];
-  t[0] = 10;
-  t[1] = 100;
-  t[2] = 1000;
-  t[3] = 3000;
-  t[4] = 5000;
-  t[5] = 7000;
-  t[6] = 9000;
-  uint64_t b = 0;
-  prg.random_data(&b, sizeof(uint64_t));
-  cout<<"o:"<<b<<endl;
-  b = HashP(b);
-  cout<<"n:"<<b<<endl;
-  // string filen[3] ={"/small-correlated.txt","/small-uniformly-distributed.txt","/small-anti-correlated.txt"};
-  // string datan[3] ={"corr-","unif-","anti-"};
-  // for (int kk = 0; kk < 3; kk++)
-  // {
-  //   filename = filen[kk];
-  //   dataname = datan[kk];
-  //   for (int i = 2; i <= 6; i++)
-  //   {
-  //     n = t[i];
-  //     data_path = "./data/input=10000/size=" + to_string(n) + filename;
-  //     vector<vector<uint32_t>> p;
-  //     loadP(p, data_path);
-  //     loadG(p, G);
-  //     m = p[0].size();
-  //     SSG(G, SS_G);
-  //     // plain(p, q);
-  //     dynamicSkylineR(G); 
-  //     Test_poly();
-  //     p.clear();
-  //     for(int j = 0; j< m; j++)
-  //     {
-  //       delete[] SS_G[j];
-  //     }
-  //     delete[] SS_G;
-  //   }
-  // }
-  // delete[] t;
-  for (int i = 0; i < THs; i++)
-  {
-    delete Auxt[i];
-    delete Prodt[i];
-    delete Otpackt[i];
-    delete Iot[i];
-  }
-  return 0;
-}
-
-//D
-int main1(int argc, char **argv)
+//Dynamic skyline query
+int mainD(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
@@ -14441,8 +11003,8 @@ int main1(int argc, char **argv)
   return 0;
 }
 
-//D-T
-int main2(int argc, char **argv)
+//Dynamic skyline query-Thread
+int mainDT(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
@@ -14664,8 +11226,8 @@ int main2(int argc, char **argv)
   return 0;
 }
 
-// other dataset: D and D-T
-int main3(int argc, char **argv)
+// other dataset: Dynamic skyline query
+int maindoD(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
@@ -14867,7 +11429,8 @@ int main3(int argc, char **argv)
   return 0;
 }
 
-int main4(int argc, char **argv)
+//other dataset: Dynamic skyline query-Thread
+int maindoDT(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
