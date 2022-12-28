@@ -1,0 +1,68 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "s1",
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "/workspaces/Skyline/SCI/build/bin/",
+            "program": "/workspaces/Skyline/SCI/build/bin/skyline-OT",
+            "args": [
+                "r=1", "p=7000"
+            ],
+            "stopAtEntry": false,
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "C/C++",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "s2",
+            "type": "cppdbg",
+            "program": "/workspaces/Skyline/SCI/build/bin/skyline-OT",
+            "request": "launch",
+            "args": [
+                "r=2", "p=7000"
+            ],
+            "stopAtEntry": false,
+            "cwd": "/workspaces/Skyline/SCI/build/bin",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "C/C++",
+            "miDebuggerPath": "/usr/bin/gdb"
+        }
+    ] ,
+    "compounds": [
+        {
+            "name": "s1/s2",
+            "configurations": ["s1","s2"],
+            // "preLaunchTask": ""
+        }
+    ]
+}
