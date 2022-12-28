@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/skyline_1-OT.dir/test_ring_skyline_1.cpp.o  -o ../bin/skyline_1-OT  ../lib/libSCI-OT.a -pthread ../lib/libSCI-Math.a ../lib/libSCI-LinearOT.a ../lib/libSCI-BuildingBlocks.a /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so /usr/lib/x86_64-linux-gnu/libgmp.so 

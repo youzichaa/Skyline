@@ -1,0 +1,1 @@
+/usr/bin/c++   -fopenmp   CMakeFiles/resnet32_cifar-HE.dir/main_resnet32_cifar.cpp.o  -o ../bin/resnet32_cifar-HE  ../lib/libSCI-HE.a ../lib/libSCI-LinearHE.a /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so /usr/lib/x86_64-linux-gnu/libgmp.so ../lib/libseal.a /usr/lib/gcc/x86_64-linux-gnu/9/libgomp.so -lpthread 

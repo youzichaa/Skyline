@@ -1,0 +1,1 @@
+/usr/bin/c++   -fopenmp   CMakeFiles/minionn-OT.dir/main_minionn.cpp.o  -o ../bin/minionn-OT  ../lib/libSCI-OT.a ../lib/libSCI-Math.a ../lib/libSCI-LinearOT.a ../lib/libSCI-BuildingBlocks.a /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so /usr/lib/x86_64-linux-gnu/libgmp.so 

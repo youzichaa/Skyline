@@ -1,0 +1,1 @@
+/usr/bin/c++   -fopenmp   CMakeFiles/hadamard_product-OT.dir/test_ring_hadamard_product.cpp.o  -o ../bin/hadamard_product-OT  ../lib/libSCI-OT.a -pthread ../lib/libSCI-Math.a ../lib/libSCI-LinearOT.a ../lib/libSCI-BuildingBlocks.a /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so /usr/lib/x86_64-linux-gnu/libgmp.so 

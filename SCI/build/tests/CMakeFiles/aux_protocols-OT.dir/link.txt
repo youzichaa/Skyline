@@ -1,0 +1,1 @@
+/usr/bin/c++   -fopenmp   CMakeFiles/aux_protocols-OT.dir/test_ring_aux_protocols.cpp.o  -o ../bin/aux_protocols-OT  ../lib/libSCI-OT.a -pthread ../lib/libSCI-Math.a ../lib/libSCI-LinearOT.a ../lib/libSCI-BuildingBlocks.a /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so /usr/lib/x86_64-linux-gnu/libgmp.so 
