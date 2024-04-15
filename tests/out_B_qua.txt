@@ -1,0 +1,133 @@
+ -------------------------------------
+n = 1000 corr-NonThread-D
+ ES_ Total Time:26.8599 s
+ ES_ Read Time:5.69706 s
+ ES_ Dummy Time:1.14961 s
+ ES_ Mask Time:1.23058 s
+ ES_ SelectQua Time:1.9915 s
+ ES_ Select Time:24.1184 s
+ ES_ Mask Communication:3.93994e+08 Bytes
+ ES_ Select Communication:4.63316e+07 Bytes
+ ES_ Communication:4.40325e+08 Bytes
+correct rate:100%
+
+ -------------------------------------
+ -------------------------------------
+ n = 1000 corr-Thread-D
+ ES_ Skyline Number:9.2
+ ES_ Total Time:7.49323 s
+ ES_ Read Time:4.99175 s
+ ES_ Dummy Time:1.21049 s
+ ES_ Mask Time:1.33057 s
+ ES_ SelectQua Time:0.325074 s
+ ES_ Select Time:4.58494 s
+ ES_ Mask Communication:375.742 MB
+ ES_ Select Communication:48.9866 MB
+ ES_ Communication:424.728 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 1000 diabets-NonThread-D
+ ES_ Total Time:2.95342 s
+ ES_ Read Time:0.0106145 s
+ ES_ Dummy Time:0.0654756 s
+ ES_ Mask Time:0.0384244 s
+ ES_ SelectQua Time:0.156745 s
+ ES_ Select Time:2.84672 s
+ ES_ Mask Communication:0.302124 MB
+ ES_ Select Communication:5.01172 MB
+ ES_ Communication:5.31388 MB
+ -------------------------------------
+ -------------------------------------
+ n = 1000 diabets-Thread-D
+ ES_ Total Time:1.02319 s
+ ES_ Read Time:0.0110555 s
+ ES_ Dummy Time:0.075256 s
+ ES_ Mask Time:0.0454612 s
+ ES_ SelectQua Time:0.109381 s
+ ES_ Select Time:0.900803 s
+ ES_ Mask Communication:0.302124 MB
+ ES_ Select Communication:5.76356 MB
+ ES_ Communication:6.06572 MB
+ -------------------------------------
+ -------------------------------------
+ n = 100 corr-NonThread-D
+ ES_ Total Time:12.1326 s
+ ES_ Read Time:0.0693968 s
+ ES_ Dummy Time:0.082931 s
+ ES_ Mask Time:0.0570014 s
+ ES_ SelectQua Time:0.259555 s
+ ES_ Select Time:11.9882 s
+ ES_ Mask Communication:2.19727 MB
+ ES_ Select Communication:20.777 MB
+ ES_ Communication:22.9744 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 100 unif-NonThread-D
+ ES_ Total Time:10.487 s
+ ES_ Read Time:0.101218 s
+ ES_ Dummy Time:0.0806734 s
+ ES_ Mask Time:0.0605437 s
+ ES_ SelectQua Time:0.257464 s
+ ES_ Select Time:10.3405 s
+ ES_ Mask Communication:2.56805 MB
+ ES_ Select Communication:18.1695 MB
+ ES_ Communication:20.7377 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 100 anti-NonThread-D
+ ES_ Total Time:10.9562 s
+ ES_ Read Time:0.0852089 s
+ ES_ Dummy Time:0.0827942 s
+ ES_ Mask Time:0.053616 s
+ ES_ SelectQua Time:0.251976 s
+ ES_ Select Time:10.8155 s
+ ES_ Mask Communication:2.49252 MB
+ ES_ Select Communication:18.7434 MB
+ ES_ Communication:21.236 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 100 corr-Thread-D
+ ES_ Skyline Number:7.4
+ ES_ Total Time:3.01384 s
+ ES_ Read Time:0.0586737 s
+ ES_ Dummy Time:0.095283 s
+ ES_ Mask Time:0.0720307 s
+ ES_ SelectQua Time:0.124928 s
+ ES_ Select Time:2.84015 s
+ ES_ Mask Communication:2.19727 MB
+ ES_ Select Communication:23.5761 MB
+ ES_ Communication:25.7735 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 100 unif-Thread-D
+ ES_ Skyline Number:5.2
+ ES_ Total Time:2.66281 s
+ ES_ Read Time:0.0652157 s
+ ES_ Dummy Time:0.0992667 s
+ ES_ Mask Time:0.0680213 s
+ ES_ SelectQua Time:0.125125 s
+ ES_ Select Time:2.49043 s
+ ES_ Mask Communication:2.56805 MB
+ ES_ Select Communication:18.86 MB
+ ES_ Communication:21.4282 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 100 anti-Thread-D
+ ES_ Skyline Number:8
+ ES_ Total Time:3.67967 s
+ ES_ Read Time:0.0767485 s
+ ES_ Dummy Time:0.102681 s
+ ES_ Mask Time:0.0616002 s
+ ES_ SelectQua Time:0.123803 s
+ ES_ Select Time:3.51049 s
+ ES_ Mask Communication:2.49252 MB
+ ES_ Select Communication:27.4759 MB
+ ES_ Communication:29.9685 MB
+ correct rate:100%
+ -------------------------------------

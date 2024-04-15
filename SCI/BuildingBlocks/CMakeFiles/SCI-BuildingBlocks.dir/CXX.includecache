@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/aux-protocols.cpp
+BuildingBlocks/aux-protocols.h
+/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/BuildingBlocks/aux-protocols.h
+BuildingBlocks/truncation.h
+/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/BuildingBlocks/truncation.h
+BuildingBlocks/value-extension.h
+/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/BuildingBlocks/value-extension.h
+
+/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/truncation.cpp
+BuildingBlocks/truncation.h
+/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/BuildingBlocks/truncation.h
+BuildingBlocks/value-extension.h
+/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/BuildingBlocks/value-extension.h
+
+/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/value-extension.cpp
+BuildingBlocks/value-extension.h
+/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/BuildingBlocks/value-extension.h
+

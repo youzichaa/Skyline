@@ -1,0 +1,773 @@
+nohup: ignoring input
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+K1:910
+K2:902
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+connected
+K1:910
+K2:902
+K1:910
+K2:902
+K1:910
+K2:902
+K1:910
+K2:902
+K1:910
+K2:902
+K1:910
+K2:902
+K1:910
+K2:902
+q-0:6394	3842
+q-0:6394	3842
+dummy element:0.921252 s
+dummy element:1.0446 s
+mask element:1.27669 s
+mask element:1.14389 s
+select element:4.10824 s
+select element:4.08861 s
+len:8
+len:8
+q-1:2931	2668
+q-1:2931	2668
+dummy element:1.07827 s
+dummy element:1.70619 s
+mask element:1.17312 s
+mask element:1.42103 s
+select element:3.19876 s
+select element:3.18482 s
+len:6
+len:6
+q-2:2637	1688
+q-2:2637	1688
+dummy element:1.06928 s
+dummy element:1.17507 s
+mask element:1.16229 s
+mask element:1.08757 s
+select element:2.7091 s
+select element:2.72993 s
+len:5
+len:5
+q-3:1428	3936
+q-3:1428	3936
+dummy element:0.983873 s
+dummy element:1.23092 s
+mask element:1.4555 s
+mask element:1.21591 s
+select element:4.49458 s
+select element:4.49533 s
+len:9
+len:9
+q-4:5145	4049
+q-4:5145	4049
+dummy element:1.10737 s
+dummy element:1.22415 s
+mask element:1.10889 s
+mask element:1.20994 s
+select element:2.43542 s
+select element:2.41031 s
+len:4
+len:4
+q-5:5692	5134
+q-5:5692	5134
+dummy element:0.969557 s
+dummy element:1.03401 s
+mask element:1.27352 s
+mask element:1.19924 s
+select element:5.97933 s
+len:13
+select element:5.98612 s
+len:13
+q-6:1476	4111
+q-6:1476	4111
+dummy element:0.958548 s
+dummy element:1.23659 s
+mask element:1.62511 s
+mask element:1.36158 s
+select element:4.49619 s
+select element:4.5055 s
+len:9
+len:9
+q-7:2711	5929
+q-7:2711	5929
+dummy element:0.699138 s
+dummy element:1.02618 s
+mask element:1.09402 s
+mask element:1.40941 s
+select element:5.49156 s
+select element:5.52256 s
+len:11
+len:11
+q-8:2599	5304
+q-8:2599	5304
+dummy element:0.981638 s
+dummy element:1.12156 s
+mask element:1.238 s
+mask element:1.36682 s
+select element:5.28592 s
+select element:5.31011 s
+len:11
+len:11
+q-9:7848	4969
+q-9:7848	4969
+dummy element:0.995528 s
+dummy element:1.15058 s
+mask element:1.42256 s
+mask element:1.31466 s
+select element:4.56416 s
+len:9
+select element:4.54256 s
+len:9
+q-10:4287	5020
+q-10:4287	5020
+dummy element:0.917192 s
+dummy element:0.988398 s
+mask element:1.20194 s
+mask element:1.3246 s
+select element:3.10054 s
+len:6
+select element:3.08153 s
+len:6
+q-11:5785	4750
+q-11:5785	4750
+dummy element:1.47038 s
+dummy element:1.05664 s
+mask element:1.13064 s
+mask element:1.22263 s
+select element:5.90214 s
+select element:5.91623 s
+len:12
+len:12
+q-12:7974	6092
+q-12:7974	6092
+dummy element:1.03827 s
+dummy element:1.13473 s
+mask element:1.23806 s
+mask element:1.154 s
+select element:3.495 s
+select element:3.50854 s
+len:7
+len:7
+q-13:2151	1503
+q-13:2151	1503
+dummy element:0.931102 s
+dummy element:1.14991 s
+mask element:1.71828 s
+mask element:1.40897 s
+select element:2.27825 s
+select element:2.28487 s
+len:4
+len:4
+q-14:3999	7932
+q-14:3999	7932
+dummy element:0.908608 s
+dummy element:1.07078 s
+mask element:1.26949 s
+mask element:1.12922 s
+select element:4.83672 s
+select element:4.82423 s
+len:10
+len:10
+q-15:5237	2393
+q-15:5237	2393
+dummy element:1.11364 s
+dummy element:1.15651 s
+mask element:1.14735 s
+mask element:1.10909 s
+select element:4.50813 s
+select element:4.54133 s
+len:9
+len:9
+q-16:3774	4520
+q-16:3774	4520
+dummy element:1.02611 s
+dummy element:1.16955 s
+mask element:1.26739 s
+mask element:1.46004 s
+select element:2.73001 s
+select element:2.72756 s
+len:5
+len:5
+q-17:1413	5412
+q-17:1413	5412
+dummy element:1.31415 s
+dummy element:0.930814 s
+mask element:1.28134 s
+mask element:1.1306 s
+select element:4.42793 s
+select element:4.43824 s
+len:9
+len:9
+q-18:5209	1841
+q-18:5209	1841
+dummy element:1.12332 s
+dummy element:1.2412 s
+mask element:1.33234 s
+mask element:1.40355 s
+select element:4.24304 s
+len:8
+select element:4.25562 s
+len:8
+q-19:1348	6706
+q-19:1348	6706
+dummy element:0.982413 s
+dummy element:1.03153 s
+mask element:1.15002 s
+mask element:1.09713 s
+select element:5.79147 s
+select element:5.78482 s
+len:12
+len:12
+n = 1000 corr-
+Bob Skyline Number	[31m8.35[0m
+Bob Total Time	[31m6.87681 s[0m
+Bob Read Time	[31m5.28696 s[0m
+Bob Dummy Time	[31m1.03083 s[0m
+Bob Mask Time	[31m1.28905 s[0m
+Bob SelectQua Time	[31m0.317871 s[0m
+Bob Select Time	[31m4.20412 s[0m
+Bob Communication	[34m4.41364e+08 Bytes[0m
+correct rate:100%
+n = 1000 corr-
+Alice Skyline Number	[31m8.35[0m
+Alice Total Time	[31m6.92566 s[0m
+Alice Read Time	[31m5.27293 s[0m
+Alice Dummy Time	[31m1.14265 s[0m
+Alice Mask Time	[31m1.24777 s[0m
+Alice SelectQua Time	[31m0.320409 s[0m
+Alice Select Time	[31m4.20665 s[0m
+Alice Communication	[34m4.04653e+08 Bytes[0m
+correct rate:100%
+K1:950
+K2:958
+K1:950
+K2:958
+K1:950
+K2:958
+K1:950
+K2:958
+K1:950
+K2:958
+K1:950
+K2:958
+K1:950
+K2:958
+K1:950
+K2:958
+q-0:4890	6040
+q-0:4890	6040
+dummy element:1.0184 s
+dummy element:1.21634 s
+mask element:1.5761 s
+mask element:1.55891 s
+select element:4.51359 s
+select element:4.5018 s
+len:8
+len:8
+q-1:3840	2718
+q-1:3840	2718
+dummy element:1.01037 s
+dummy element:1.20351 s
+mask element:1.51016 s
+mask element:1.63142 s
+select element:4.4294 s
+select element:4.45383 s
+len:8
+len:8
+q-2:6503	2903
+q-2:6503	2903
+dummy element:1.11373 s
+dummy element:1.20582 s
+mask element:1.34247 s
+mask element:1.28322 s
+select element:3.88172 s
+select element:3.8399 s
+len:7
+len:7
+q-3:7648	1102
+q-3:7648	1102
+dummy element:0.865657 s
+dummy element:1.41636 s
+mask element:1.79936 s
+mask element:1.36114 s
+select element:3.4357 s
+select element:3.46801 s
+len:6
+len:6
+q-4:7208	4848
+q-4:7208	4848
+dummy element:0.885394 s
+dummy element:1.46393 s
+mask element:1.78881 s
+mask element:1.25284 s
+select element:3.12338 s
+select element:3.119 s
+len:5
+len:5
+q-5:2423	7847
+q-5:2423	7847
+dummy element:1.28783 s
+dummy element:1.74065 s
+mask element:1.62048 s
+mask element:1.19276 s
+select element:4.31825 s
+select element:4.24777 s
+len:7
+len:7
+q-6:6220	4561
+q-6:6220	4561
+dummy element:1.18826 s
+dummy element:1.28937 s
+mask element:1.4946 s
+mask element:1.45211 s
+select element:4.12083 s
+select element:4.06623 s
+len:7
+len:7
+q-7:4597	6194
+q-7:4597	6194
+dummy element:1.51416 s
+dummy element:1.30148 s
+mask element:1.10651 s
+mask element:1.19888 s
+select element:3.63195 s
+select element:3.62512 s
+len:6
+len:6
+q-8:2653	3100
+q-8:2653	3100
+dummy element:1.38974 s
+dummy element:1.52856 s
+mask element:1.21659 s
+mask element:1.48388 s
+select element:2.98489 s
+select element:2.99438 s
+len:5
+len:5
+q-9:4050	3004
+q-9:4050	3004
+dummy element:1.13629 s
+dummy element:1.29667 s
+mask element:1.21795 s
+mask element:1.41388 s
+select element:4.41386 s
+select element:4.3969 s
+len:8
+len:8
+q-10:7385	5639
+q-10:7385	5639
+dummy element:1.1898 s
+dummy element:1.34923 s
+mask element:1.32224 s
+mask element:1.20188 s
+select element:3.68221 s
+select element:3.68767 s
+len:6
+len:6
+q-11:4397	3159
+q-11:4397	3159
+dummy element:1.16507 s
+dummy element:1.56051 s
+mask element:1.20863 s
+mask element:1.63392 s
+select element:6.38884 s
+select element:6.37131 s
+len:12
+len:12
+q-12:2160	2162
+q-12:2160	2162
+dummy element:1.16105 s
+dummy element:1.62548 s
+mask element:1.63412 s
+mask element:1.26482 s
+select element:3.17881 s
+select element:3.16743 s
+len:5
+len:5
+q-13:4923	3721
+q-13:4923	3721
+dummy element:1.03734 s
+dummy element:1.05998 s
+mask element:1.22572 s
+mask element:1.28689 s
+select element:4.59259 s
+select element:4.60594 s
+len:8
+len:8
+q-14:3003	2623
+q-14:3003	2623
+dummy element:1.21281 s
+dummy element:1.18781 s
+mask element:1.27418 s
+mask element:1.34273 s
+select element:2.9623 s
+select element:2.95095 s
+len:5
+len:5
+q-15:2427	4245
+q-15:2427	4245
+dummy element:1.12813 s
+dummy element:1.25754 s
+mask element:1.36774 s
+mask element:1.52017 s
+select element:1.56642 s
+select element:1.63606 s
+len:2
+len:2
+q-16:5015	2620
+q-16:5015	2620
+dummy element:0.895146 s
+dummy element:1.12281 s
+mask element:1.36196 s
+mask element:1.16813 s
+select element:3.89404 s
+len:7
+select element:3.87332 s
+len:7
+q-17:3316	7870
+q-17:3316	7870
+dummy element:1.5664 s
+dummy element:1.52376 s
+mask element:1.33267 s
+mask element:1.45407 s
+select element:4.27843 s
+select element:4.27032 s
+len:8
+len:8
+q-18:4523	7316
+q-18:4523	7316
+dummy element:1.08024 s
+dummy element:1.10891 s
+mask element:1.34383 s
+mask element:1.32921 s
+select element:3.44701 s
+select element:3.42442 s
+len:6
+len:6
+q-19:5324	1083
+q-19:5324	1083
+dummy element:1.31314 s
+dummy element:1.54569 s
+mask element:1.68931 s
+mask element:1.64416 s
+select element:5.08062 s
+select element:5.08847 s
+len:9
+len:9
+n = 1000 unif-
+Alice Skyline Number	[31m6.75[0m
+Alice Total Time	[31m6.97003 s[0m
+Alice Read Time	[31m6.57452 s[0m
+Alice Dummy Time	[31m1.30176 s[0m
+Alice Mask Time	[31m1.36012 s[0m
+Alice SelectQua Time	[31m0.333763 s[0m
+Alice Select Time	[31m3.89381 s[0m
+Alice Communication	[34m5.27696e+08 Bytes[0m
+correct rate:100%
+n = 1000 unif-
+Bob Skyline Number	[31m6.75[0m
+Bob Total Time	[31m6.95293 s[0m
+Bob Read Time	[31m6.69126 s[0m
+Bob Dummy Time	[31m1.20641 s[0m
+Bob Mask Time	[31m1.4453 s[0m
+Bob SelectQua Time	[31m0.332541 s[0m
+Bob Select Time	[31m3.89187 s[0m
+Bob Communication	[34m5.61357e+08 Bytes[0m
+correct rate:100%
+K1:927
+K2:899
+K1:927
+K2:899
+K1:927
+K2:899
+K1:927
+K2:899
+K1:927
+K2:899
+K1:927
+K2:899
+K1:927
+K2:899
+K1:927
+K2:899
+q-0:4164	4100
+q-0:4164	4100
+dummy element:0.652414 s
+dummy element:1.23747 s
+mask element:1.47404 s
+mask element:2.00052 s
+select element:4.43178 s
+select element:4.40215 s
+len:9
+len:9
+q-1:7931	6736
+q-1:7931	6736
+dummy element:0.843785 s
+dummy element:1.0349 s
+mask element:1.04097 s
+mask element:1.27958 s
+select element:7.45685 s
+select element:7.43529 s
+len:16
+len:16
+q-2:7661	1880
+q-2:7661	1880
+dummy element:1.02572 s
+dummy element:1.1066 s
+mask element:1.47062 s
+mask element:1.42368 s
+select element:1.53536 s
+select element:1.52264 s
+len:2
+len:2
+q-3:2283	6666
+q-3:2283	6666
+dummy element:0.844184 s
+dummy element:1.14798 s
+mask element:1.69083 s
+mask element:1.10107 s
+select element:3.30571 s
+select element:3.30222 s
+len:6
+len:6
+q-4:1333	2685
+q-4:1333	2685
+dummy element:0.947129 s
+dummy element:1.02722 s
+mask element:1.34251 s
+mask element:1.60623 s
+select element:7.47981 s
+select element:7.50952 s
+len:16
+len:16
+q-5:1670	7718
+q-5:1670	7718
+dummy element:0.762837 s
+dummy element:1.15405 s
+mask element:1.11653 s
+mask element:1.52087 s
+select element:1.88863 s
+select element:1.89027 s
+len:3
+len:3
+q-6:7324	2419
+q-6:7324	2419
+dummy element:0.877551 s
+dummy element:1.13805 s
+mask element:1.41324 s
+mask element:1.07972 s
+select element:4.57386 s
+select element:4.56788 s
+len:9
+len:9
+q-7:7229	5836
+q-7:7229	5836
+dummy element:1.10327 s
+dummy element:1.13751 s
+mask element:1.17434 s
+mask element:1.22367 s
+select element:4.86862 s
+select element:4.83432 s
+len:10
+len:10
+q-8:3581	4153
+q-8:3581	4153
+dummy element:0.999125 s
+dummy element:1.08121 s
+mask element:1.29516 s
+mask element:1.22033 s
+select element:4.15434 s
+select element:4.16699 s
+len:8
+len:8
+q-9:5909	2936
+q-9:5909	2936
+dummy element:1.50749 s
+dummy element:1.22533 s
+mask element:1.05284 s
+mask element:1.10123 s
+select element:2.71895 s
+select element:2.71892 s
+len:5
+len:5
+q-10:3128	7337
+q-10:3128	7337
+dummy element:0.821613 s
+dummy element:1.33575 s
+mask element:1.17681 s
+mask element:1.56379 s
+select element:2.82961 s
+select element:2.81804 s
+len:5
+len:5
+q-11:3533	4496
+q-11:3533	4496
+dummy element:0.877903 s
+dummy element:1.10674 s
+mask element:1.15755 s
+mask element:1.51263 s
+select element:3.47751 s
+select element:3.45008 s
+len:7
+len:7
+q-12:1957	5849
+q-12:1957	5849
+dummy element:1.30501 s
+dummy element:1.2977 s
+mask element:1.82792 s
+mask element:1.41141 s
+select element:4.48395 s
+select element:4.49221 s
+len:9
+len:9
+q-13:1718	5480
+q-13:1718	5480
+dummy element:1.07499 s
+dummy element:1.10881 s
+mask element:1.16561 s
+mask element:1.23753 s
+select element:3.61097 s
+select element:3.61182 s
+len:7
+len:7
+q-14:5165	6043
+q-14:5165	6043
+dummy element:0.820759 s
+dummy element:0.944775 s
+mask element:1.39201 s
+mask element:1.24441 s
+select element:4.17017 s
+select element:4.16334 s
+len:8
+len:8
+q-15:2916	5681
+q-15:2916	5681
+dummy element:0.854172 s
+dummy element:1.12533 s
+mask element:1.32459 s
+mask element:1.11607 s
+select element:3.67608 s
+select element:3.6629 s
+len:7
+len:7
+q-16:6495	2847
+q-16:6495	2847
+dummy element:0.818888 s
+dummy element:1.04878 s
+mask element:1.72166 s
+mask element:1.39985 s
+select element:2.77305 s
+select element:2.79338 s
+len:5
+len:5
+q-17:4418	6156
+q-17:4418	6156
+dummy element:0.689553 s
+dummy element:1.01972 s
+mask element:1.62197 s
+mask element:1.26159 s
+select element:2.82931 s
+select element:2.82494 s
+len:5
+len:5
+q-18:3727	3053
+q-18:3727	3053
+dummy element:0.815413 s
+dummy element:1.22917 s
+mask element:1.46942 s
+mask element:1.89002 s
+select element:6.60715 s
+select element:6.61692 s
+len:14
+len:14
+q-19:4822	1412
+q-19:4822	1412
+dummy element:0.962463 s
+dummy element:1.23036 s
+mask element:1.50734 s
+mask element:1.26774 s
+select element:4.08029 s
+select element:4.07977 s
+len:8
+len:8
+n = 1000 anti-
+Alice Skyline Number	[31m7.95[0m
+Alice Total Time	[31m6.80063 s[0m
+Alice Read Time	[31m6.7839 s[0m
+Alice Dummy Time	[31m1.09689 s[0m
+Alice Mask Time	[31m1.33202 s[0m
+Alice SelectQua Time	[31m0.321151 s[0m
+Alice Select Time	[31m4.04517 s[0m
+Alice Communication	[34m4.24015e+08 Bytes[0m
+correct rate:100%
+n = 1000 anti-
+Bob Skyline Number	[31m7.95[0m
+Bob Total Time	[31m6.76012 s[0m
+Bob Read Time	[31m6.69749 s[0m
+Bob Dummy Time	[31m0.970197 s[0m
+Bob Mask Time	[31m1.41287 s[0m
+Bob SelectQua Time	[31m0.32172 s[0m
+Bob Select Time	[31m4.04561 s[0m
+Bob Communication	[34m4.5983e+08 Bytes[0m
+correct rate:100%

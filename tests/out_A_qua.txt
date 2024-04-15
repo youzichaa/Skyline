@@ -1,0 +1,133 @@
+ -------------------------------------
+n = 1000 corr-NonThread-D
+ CS_Total Time:26.9175 s
+ CS_Read Time:5.56917 s
+ CS_Dummy Time:1.10917 s
+ CS_Mask Time:1.33462 s
+ CS_SelectQua Time:1.9871 s
+ CS_Select Time:24.1139 s
+ CS_Mask Communication:3.93994e+08 Bytes
+ CS_Select Communication:1.19977e+07 Bytes
+ CS_Communication:4.05991e+08 Bytes
+ correct rate:100%
+
+ -------------------------------------
+ -------------------------------------
+ n = 1000 corr-Thread-D
+ CS_ Skyline Number:9.2
+ CS_ Total Time:7.52381 s
+ CS_ Read Time:4.98016 s
+ CS_ Dummy Time:1.23479 s
+ CS_ Mask Time:1.34364 s
+ CS_ SelectQua Time:0.31962 s
+ CS_ Select Time:4.57948 s
+ CS_ Mask Communication:375.742 MB
+ CS_ Select Communication:10.7291 MB
+ CS_ Communication:386.471 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 1000 diabets-NonThread-D
+ CS_ Total Time:2.95357 s
+ CS_ Read Time:0.010615 s
+ CS_ Dummy Time:0.0572699 s
+ CS_ Mask Time:0.0461634 s
+ CS_ SelectQua Time:0.158815 s
+ CS_ Select Time:2.84878 s
+ CS_ Mask Communication:0.302124 MB
+ CS_ Select Communication:1.05436 MB
+ CS_ Communication:1.35654 MB
+ -------------------------------------
+ -------------------------------------
+ n = 1000 diabets-Thread-D
+ CS_ Total Time:1.0232 s
+ CS_ Read Time:0.0110595 s
+ CS_ Dummy Time:0.0691342 s
+ CS_ Mask Time:0.0501314 s
+ CS_ SelectQua Time:0.109493 s
+ CS_ Select Time:0.901043 s
+ CS_ Mask Communication:0.302124 MB
+ CS_ Select Communication:0.938979 MB
+ CS_ Communication:1.24117 MB
+ -------------------------------------
+ -------------------------------------
+ n = 100 corr-NonThread-D
+ CS_Total Time:12.1339 s
+ CS_Read Time:0.0639856 s
+ CS_Dummy Time:0.0708672 s
+ CS_Mask Time:0.0706029 s
+ CS_SelectQua Time:0.259407 s
+ CS_Select Time:11.988 s
+ CS_Mask Communication:2.19727 MB
+ CS_Select Communication:3.87985 MB
+ CS_Communication:6.07725 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 100 unif-NonThread-D
+ CS_Total Time:10.488 s
+ CS_Read Time:0.093995 s
+ CS_Dummy Time:0.0697115 s
+ CS_Mask Time:0.0701419 s
+ CS_SelectQua Time:0.258766 s
+ CS_Select Time:10.3418 s
+ CS_Mask Communication:2.56805 MB
+ CS_Select Communication:3.46319 MB
+ CS_Communication:6.03135 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 100 anti-NonThread-D
+ CS_Total Time:10.9566 s
+ CS_Read Time:0.0852018 s
+ CS_Dummy Time:0.0618057 s
+ CS_Mask Time:0.0764729 s
+ CS_SelectQua Time:0.25033 s
+ CS_Select Time:10.8138 s
+ CS_Mask Communication:2.49252 MB
+ CS_Select Communication:3.54919 MB
+ CS_Communication:6.04183 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 100 corr-Thread-D
+ CS_ Skyline Number:7.4
+ CS_ Total Time:3.01392 s
+ CS_ Read Time:0.0578307 s
+ CS_ Dummy Time:0.0938663 s
+ CS_ Mask Time:0.0764037 s
+ CS_ SelectQua Time:0.124184 s
+ CS_ Select Time:2.83938 s
+ CS_ Mask Communication:2.19727 MB
+ CS_ Select Communication:3.18476 MB
+ CS_ Communication:5.38217 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 100 unif-Thread-D
+ CS_ Skyline Number:5.2
+ CS_ Total Time:2.66287 s
+ CS_ Read Time:0.0649812 s
+ CS_ Dummy Time:0.0914033 s
+ CS_ Mask Time:0.0772551 s
+ CS_ SelectQua Time:0.122665 s
+ CS_ Select Time:2.48909 s
+ CS_ Mask Communication:2.56805 MB
+ CS_ Select Communication:2.69956 MB
+ CS_ Communication:5.26773 MB
+ correct rate:100%
+ -------------------------------------
+ -------------------------------------
+ n = 100 anti-Thread-D
+ CS_ Skyline Number:8
+ CS_ Total Time:3.68096 s
+ CS_ Read Time:0.0639655 s
+ CS_ Dummy Time:0.0908605 s
+ CS_ Mask Time:0.0773795 s
+ CS_ SelectQua Time:0.120949 s
+ CS_ Select Time:3.50829 s
+ CS_ Mask Communication:2.49252 MB
+ CS_ Select Communication:3.69758 MB
+ CS_ Communication:6.19025 MB
+ correct rate:100%
+ -------------------------------------

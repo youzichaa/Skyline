@@ -1,0 +1,21 @@
+ -------------------------------------
+n = 100 corr-
+ CS_ Total Time:306.351 s
+ CS_ Share Time:0.0584701 s
+ CS_ Process Time:76.8315 s
+ CS_ Communication:1.10481e+09 Bytes
+ -------------------------------------
+ -------------------------------------
+n = 100 unif-
+ CS_ Total Time:302.464 s
+ CS_ Share Time:0.0486993 s
+ CS_ Process Time:74.1542 s
+ CS_ Communication:1157 MB
+ -------------------------------------
+ -------------------------------------
+n = 100 anti-
+ CS_ Total Time:275.623 s
+ CS_ Share Time:0.0509285 s
+ CS_ Process Time:69.7276 s
+ CS_ Communication:1107 MB
+ -------------------------------------

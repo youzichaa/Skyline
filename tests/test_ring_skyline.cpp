@@ -52,6 +52,7 @@ using namespace sci;
 using namespace std;
 
 int party, port = 8000, dim = 1 << 16;
+int Pst = 2, Pn = 0;
 string address = "127.0.0.1";
 int THs = 32;
 NetIO *Iot[32];
@@ -855,8 +856,209 @@ void plain(vector<vector<uint32_t>> p, vector<uint32_t> q)
       cout << x[j] << "\t";
     }
     cout << endl;
-    ;
   }
+}
+
+unordered_set<uint32_t> plainR(vector<vector<uint32_t>> p, vector<uint32_t> q)
+{
+  double start = omp_get_wtime();
+  // Process
+  int k = 1;
+  // left and right add a row
+  for (int k1 = G[k].size(); k1 >= 0; k1--)
+  {
+    unordered_set<uint32_t> hs;
+    hs.insert(0);
+    Skyline[(k1 << MAX) + G[k + 1].size()] = hs;
+  }
+  cout << "K1:" << G[k].size() << endl;
+  for (int k2 = G[k + 1].size(); k2 >= 0; k2--)
+  {
+    unordered_set<uint32_t> hs;
+    hs.insert(0);
+    Skyline[(G[k].size() << MAX) + k2] = hs;
+  }
+  cout << "K2:" << G[k + 1].size() << endl;
+  uint32_t *g = new uint32_t[2];
+  int Vlen = 0;
+  for (int k1 = G[k].size() - 1; k1 >= 0; k1--)
+  {
+    g[k - 1] = G[k][k1]; // right
+    k++;
+    for (int k2 = G[k].size() - 1; k2 >= 0; k2--)
+    {
+      g[k - 1] = G[k][k2]; // upper
+      unordered_set<uint32_t> hs;
+      uint32_t tmp = Aggreate(g);
+      if (H.find(tmp) != H.end())
+      { // point in the upper right corner of this grid
+        hs.insert(tmp);
+      }
+      else
+      {
+        int t1 = ((k1 + 1) << MAX) + k2;
+        int t2 = ((k1) << MAX) + k2 + 1;
+        int t3 = ((k1 + 1) << MAX) + k2 + 1;
+        hs.insert(Skyline[t1].begin(), Skyline[t1].end());
+        unordered_set<uint32_t> h2(Skyline[t2]);
+        for (uint32_t b : Skyline[t3])
+        {
+          if (hs.find(b) != hs.end())
+          {
+            hs.erase(b);
+          }
+          else
+          {
+            h2.erase(b);
+          }
+        }
+        hs.insert(h2.begin(), h2.end());
+        if (hs.size() > Vlen)
+          Vlen = hs.size();
+      }
+      Skyline[(k1 << MAX) + k2] = hs;
+      // cout << hs.size() <<"\t";
+    }
+    // cout<<endl;
+    k--;
+  }
+  delete[] g;
+  cout << "len:" << Vlen << endl;
+  // for (int k2 = G[k + 1].size(); k2 >= 0; k2--)
+  // {
+  //   for (int k1 = 0; k1 <= G[k].size(); k1++)
+  //   {
+  //     PrintS(Skyline[(k1 << MAX) + k2]);
+  //     cout << " ";
+  //   }
+  //   cout << endl;
+  // }
+
+  // for (int j = 0; j<= G[1].size(); j++) {
+  //   for (int i = 0; i <=G[2].size(); i++) {
+  //     PrintS(Skyline[(j<<MAX)+i]);
+  //     cout << " ";
+  //   }
+  //   cout << endl;
+  // }
+  double end = omp_get_wtime();
+  double time = end - start;
+  plain_process = ((double)time);
+  unordered_set<uint32_t> skyline(Skyline[(indexG(G[1], q[0]) << MAX) + indexG(G[2], q[1])]);
+  cout << indexG(G[1], q[0]) << "," << indexG(G[2], q[1]) << endl;
+  cout << skyline.size() << endl;
+  for (uint32_t b : skyline)
+  {
+    vector<uint32_t> x(m);
+    x[0] = b & ((1ULL << MAX) - 1);
+    for (int j = 1; j < m; j++)
+    {
+      b = (b - x[j - 1]) >> MAX;
+      x[j] = b & ((1ULL << MAX) - 1);
+    }
+    // x[0] = b %10000;
+    //  for (int j = 1; j < m; j++) {
+    //     b = (b - x[j-1]) /10000;
+    //     x[j] = b %10000;
+    // }
+    for (int j = m - 1; j >= 0; j--)
+    {
+      cout << x[j] << "\t";
+    }
+    cout << endl;
+  }
+  return Skyline[(indexG(G[1], q[0]) << MAX) + indexG(G[2], q[1])];
+}
+
+uint64_t *plainT(vector<vector<uint32_t>> P, vector<uint32_t> Q) {
+  unordered_map<uint32_t, vector<uint32_t>> T;
+  unordered_map<uint32_t, vector<uint32_t>> Result;
+  // Process
+  double t1 = omp_get_wtime();
+  for (int i = 0; i < n; i++) {
+      vector<uint32_t> pt(m);
+      for (int j = 0; j < m; j++) {
+        if (j<2) {
+          uint32_t t = P[i][j] - Q[j];
+          pt[j] = t * t;
+        } else { // location
+          pt[j] = P[i][j];
+        }
+      }
+      T[i] = pt;
+  }
+  double er = omp_get_wtime();
+  double plain_process = er - t1;
+  // Select
+  while (!T.empty()) {
+    int n = T.size();
+    vector<vector<uint32_t>> S(n, vector<uint32_t>(2));
+    int i0 = 0;
+    for (auto &entry : T) {
+      S[i0][0] = entry.first;
+      vector<uint32_t> s = entry.second;
+      S[i0][1] = s[0];
+      for (int j = 1; j < m; j++) {
+        S[i0][1] = S[i0][1] + s[j];
+      }
+      i0++;
+    }
+    int pos = S[0][0];
+    uint32_t STMin = S[0][1];
+    for (int i = 1; i < n; i++) {
+      if (S[i][1] < STMin) {
+        STMin = S[i][1];
+        pos = S[i][0];
+      }
+    }
+    vector<uint32_t> Pmin = P[pos];
+    vector<uint32_t> Tmin = T[pos];
+    Result[Result.size()] = Pmin;
+    for (auto it = T.begin(); it != T.end();) {
+      vector<uint32_t> s = it->second;
+      int sdom;
+      vector<uint32_t> leq(m);
+      for (int j = 0; j < m; j++) {
+        leq[j] = (Tmin[j] <= s[j]) ? 1 : 0;
+      }
+      uint32_t LEQ = leq[0];
+      for (int j = 1; j < m; j++) {
+        LEQ = LEQ * leq[j];
+      }
+      uint32_t EQ = 0;
+      uint32_t tmp = 0;
+      for (int j = 0; j < m; j++) {
+        tmp = tmp + s[j];
+      }
+      if (STMin < tmp) {
+        EQ = 1;
+      }
+      sdom = LEQ * EQ;
+      if (sdom == 1) {
+        it = T.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    T.erase(pos);
+  }
+  int k = Result.size();
+  // cout << k << endl;
+  // for (int i = 0; i < k; i++) {
+  //   for (int j = 0; j < m; j++) {
+  //     cout << Result[i][j] << "\t";
+  //   }
+  //   cout << endl;
+  // }
+  uint64_t *resD = new uint64_t[k*m];
+  for (int i = 0; i < k; i++)
+  {
+    for (int j = 0; j < m; j++)
+    {
+      resD[i*m+j] = Result[i][j];
+    }
+  }
+  return resD;
 }
 
 void SSQ(vector<uint32_t> q, vector<uint32_t> &Q)
@@ -3878,7 +4080,7 @@ uint64_t *SkylineResbyQ(vector<uint32_t> Q, uint32_t &reslen)
   // prg.random_data(&b2, sizeof(uint64_t));
   // dummy element
   double startd = omp_get_wtime();
-  cout << "dummy element" << endl;
+  cout << "dummy element" << ":";
   int len = 0;
   #pragma omp parallel for reduction(max:len)
   for (int k1 = 0; k1 < len1; k1++)
@@ -3889,7 +4091,7 @@ uint64_t *SkylineResbyQ(vector<uint32_t> Q, uint32_t &reslen)
         len = SS_L[(k1 * len2) + k2];
     }
   }
-  cout << "len:"<< len << endl;
+  // cout << "len:"<< len << endl;
   uint64_t SS_one = 0, SS_zero = 0;
   if (party == ALICE)
   {
@@ -3974,7 +4176,7 @@ uint64_t *SkylineResbyQ(vector<uint32_t> Q, uint32_t &reslen)
     comm_1+=Iot[j]->counter;
   }
   double startm = omp_get_wtime();
-  cout << "mask element" << endl;
+  cout << "mask element" << ":";
   // m+a*i+b
   #pragma omp parallel for
   for (int k1 = 0; k1 < len1; k1++)
@@ -4059,7 +4261,7 @@ uint64_t *SkylineResbyQ(vector<uint32_t> Q, uint32_t &reslen)
     comm_2+=Iot[j]->counter;
   }
   com1 = comm_2-comm_1;
-  cout << "select element" << endl;
+  cout << "select element" << ":";
   // select
   uint64_t *res = new uint64_t[len]();
   uint64_t *inA = new uint64_t[m];
@@ -4218,7 +4420,7 @@ uint64_t *SkylineResbyQ(vector<uint32_t> Q, uint32_t &reslen)
   }
   double endqua = omp_get_wtime();
   // SS_Print(len, res);
-  cout << "select element quasky:" << (endqua - starts) << endl;
+  // cout << "select element quasky:" << (endqua - starts) << endl;
   ss_selectSky = endqua - starts;
   // select dynamic skyline == res->result
   int th = 0;
@@ -4431,7 +4633,7 @@ uint64_t *SkylineResbyQ(vector<uint32_t> Q, uint32_t &reslen)
     // cout << "loop element filter:" << (tt4 - tt3) << endl;
   }
   double xx4 = omp_get_wtime();
-  cout << "dy element loop:" << (xx4 - xx3) << endl;
+  // cout << "dy element loop:" << (xx4 - xx3) << endl;
   // Return
   // A
   int lenD = Result.size();
@@ -4453,14 +4655,17 @@ uint64_t *SkylineResbyQ(vector<uint32_t> Q, uint32_t &reslen)
     comm_3+=Iot[j]->counter;
   }
   com2 = comm_3-comm_2;
-  cout<<lenD<<endl;
+  cout<<"len:"<<lenD<<endl;
   if (party == ALICE)
   {
     Iot[th]->send_data(resD, lenD*m * sizeof(uint64_t));
     uint64_t *STTT =  new uint64_t[lenD*m]; 
     Iot[th]->recv_data(STTT, lenD*m * sizeof(uint64_t));
     for (int i = 0; i < lenD; i++) {
-      cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
+      for (int j = 0; j < m; j++) {
+        resD[i*m+j] = (STTT[i*m+j] + resD[i*m+j]) & mask;
+      }
+      // cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
     }
     delete[] STTT;
   }
@@ -4470,7 +4675,10 @@ uint64_t *SkylineResbyQ(vector<uint32_t> Q, uint32_t &reslen)
     Iot[th]->recv_data(STTT, lenD*m * sizeof(uint64_t));
     Iot[th]->send_data(resD, lenD*m * sizeof(uint64_t));
     for (int i = 0; i < lenD; i++) {
-      cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
+      for (int j = 0; j < m; j++) {
+        resD[i*m+j] = (STTT[i*m+j] + resD[i*m+j]) & mask;
+      }
+      // cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
     }
     delete[] STTT;
   }
@@ -4554,7 +4762,7 @@ uint64_t *SkylineResbyQ_T(vector<uint32_t> Q, uint32_t &reslen)
   // prg.random_data(&b2, sizeof(uint64_t));
   // dummy element
   double startd = omp_get_wtime();
-  cout << "dummy element" << endl;
+  cout << "dummy element" << ":";
   int len = 0;
   #pragma omp parallel for reduction(max:len)
   for (int k1 = 0; k1 < len1; k1++)
@@ -4565,7 +4773,7 @@ uint64_t *SkylineResbyQ_T(vector<uint32_t> Q, uint32_t &reslen)
         len = SS_L[(k1 * len2) + k2];
     }
   }
-  cout << "len:"<< len << endl;
+  // cout << "len:"<< len << endl;
   uint64_t SS_one = 0, SS_zero = 0;
   if (party == ALICE)
   {
@@ -4650,7 +4858,7 @@ uint64_t *SkylineResbyQ_T(vector<uint32_t> Q, uint32_t &reslen)
     comm_1+=Iot[j]->counter;
   }
   double startm = omp_get_wtime();
-  cout << "mask element" << endl;
+  cout << "mask element" << ":";
   // m+a*i+b
   #pragma omp parallel for
   for (int k1 = 0; k1 < len1; k1++)
@@ -4735,7 +4943,7 @@ uint64_t *SkylineResbyQ_T(vector<uint32_t> Q, uint32_t &reslen)
     comm_2+=Iot[j]->counter;
   }
   com1 = comm_2-comm_1;
-  cout << "select element" << endl;
+  cout << "select element" << ":";
   // select
   uint64_t *res = new uint64_t[len]();
   uint64_t *inA = new uint64_t[m];
@@ -4927,7 +5135,7 @@ uint64_t *SkylineResbyQ_T(vector<uint32_t> Q, uint32_t &reslen)
   }
   double endqua = omp_get_wtime();
   // SS_Print(len, res);
-  cout << "select element quasky:" << (endqua - starts) << endl;
+  // cout << "select element quasky:" << (endqua - starts) << endl;
   ss_selectSky = endqua - starts;
   // select dynamic skyline
   // select dynamic skyline == res->result
@@ -5133,7 +5341,7 @@ uint64_t *SkylineResbyQ_T(vector<uint32_t> Q, uint32_t &reslen)
     // cout << "loop element filter:" << (tt4 - tt3) << endl;
   }
   double xx4 = omp_get_wtime();
-  cout << "dy element loop:" << (xx4 - xx3) << endl;
+  // cout << "dy element loop:" << (xx4 - xx3) << endl;
   // Return
   // A
   int lenD = Result.size();
@@ -5154,14 +5362,17 @@ uint64_t *SkylineResbyQ_T(vector<uint32_t> Q, uint32_t &reslen)
     comm_3+=Iot[j]->counter;
   }
   com2 = comm_3-comm_2;
-  cout<<lenD<<endl;
+  cout<<"len:"<<lenD<<endl;
   if (party == ALICE)
   {
     Iot[th]->send_data(resD, lenD*m * sizeof(uint64_t));
     uint64_t *STTT =  new uint64_t[lenD*m]; 
     Iot[th]->recv_data(STTT, lenD*m * sizeof(uint64_t));
     for (int i = 0; i < lenD; i++) {
-      cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
+      for (int j = 0; j < m; j++) {
+        resD[i*m+j] = (STTT[i*m+j] + resD[i*m+j]) & mask;
+      }
+      // cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
     }
     delete[] STTT;
   }
@@ -5171,7 +5382,10 @@ uint64_t *SkylineResbyQ_T(vector<uint32_t> Q, uint32_t &reslen)
     Iot[th]->recv_data(STTT, lenD*m * sizeof(uint64_t));
     Iot[th]->send_data(resD, lenD*m * sizeof(uint64_t));
     for (int i = 0; i < lenD; i++) {
-      cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
+      for (int j = 0; j < m; j++) {
+        resD[i*m+j] = (STTT[i*m+j] + resD[i*m+j]) & mask;
+      }
+      // cout<< ((STTT[2*i] + resD[2*i]) & mask) << ","<< ((STTT[2*i+1] + resD[2*i+1]) & mask) << endl;
     }
     delete[] STTT;
   }
@@ -7421,12 +7635,12 @@ void SS_Two(unordered_map<uint32_t, vector<uint32_t>> G)
   ss_process = ends - starts;  
   if (party == ALICE)
   {
-    cout << "Alice Share Time\t" << ss_upload << " s" << endl;
-    cout << "Alice Process Time\t" << ss_process << " s" << endl;
+    cout << " CS_Share Time\t" << ss_upload << " s" << endl;
+    cout << " CS_Process Time\t" << ss_process << " s" << endl;
   }else
   {
-    cout << "Bob Share Time\t"<< ss_upload << " s" << endl;
-    cout << "Bob Process Time\t" << ss_process << " s" << endl;
+    cout << " ES_ Share Time\t"<< ss_upload << " s" << endl;
+    cout << " ES_ Process Time\t" << ss_process << " s" << endl;
   }
   
   // uint32_t *SS_C0 = new uint32_t[len1 * len2];
@@ -9272,28 +9486,28 @@ int maindowq(int argc, char **argv)
       ofstream outfile;
       outfile.open("../../tests/out_A.txt", ios::app | ios::in);
       cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
-      cout << "Alice Share Time\t" << RED << Pupload << " s" << RESET << endl;
-      cout << "Alice Process Time\t" << RED << Pprocess << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Ptime << " s" << RESET << endl;    
+      cout << " CS_Share Time\t" << RED << Pupload << " s" << RESET << endl;
+      cout << " CS_Process Time\t" << RED << Pprocess << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " CS_Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " CS_Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
       outfile << " -------------------------------------" << endl;
       outfile << "n = " + to_string(n) + " " + dataname + "NonThread"  << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "Thread" << endl;  
-      outfile << " Alice Total Time:" << Ptime << " s" << endl;
-      outfile << " Alice Share Time:" << Pupload << " s" << endl;
-      outfile << " Alice Process Time:" << Pprocess << " s" << endl;
-      outfile << " Alice Communication:" << PCom << " Bytes" << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Alice Mask Time:" << Qmask << " s" << endl;
-      outfile << " Alice Select Time:" << Qselect << " s" << endl;
-      outfile << " Alice Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Alice Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
+      outfile << " CS_ Total Time:" << Ptime << " s" << endl;
+      outfile << " CS_ Share Time:" << Pupload << " s" << endl;
+      outfile << " CS_ Process Time:" << Pprocess << " s" << endl;
+      outfile << " CS_ Communication:" << PCom << " Bytes" << endl;
+      outfile << " CS_ Total Time:" << Qtime << " s" << endl;
+      outfile << " CS_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " CS_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " CS_ Select Time:" << Qselect << " s" << endl;
+      outfile << " CS_ Mask Communication:" << QCom1 << " Bytes" << endl;
+      outfile << " CS_ Select Communication:" << QCom2 << " Bytes" << endl;
+      outfile << " CS_ Communication:" << QCom << " Bytes" << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
@@ -9302,28 +9516,28 @@ int maindowq(int argc, char **argv)
       ofstream outfile;
       outfile.open("../../tests/out_B.txt", ios::app | ios::in);
       cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
-      cout << "Bob Share Time\t" << RED << Pupload << " s" << RESET << endl;
-      cout << "Bob Process Time\t" << RED << Pprocess << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Ptime << " s" << RESET << endl;
+      cout << " ES_ Share Time\t" << RED << Pupload << " s" << RESET << endl;
+      cout << " ES_ Process Time\t" << RED << Pprocess << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " ES_ Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " ES_ Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
       outfile << " -------------------------------------" << endl;
       outfile << "n = " + to_string(n) + " " + dataname + "NonThread"  << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "Thread" << endl;  
-      outfile << " Bob Total Time:" << Ptime << " s" << endl;
-      outfile << " Bob Share Time:" << Pupload << " s" << endl;
-      outfile << " Bob Process Time:" << Pprocess << " s" << endl;
-      outfile << " Bob Communication:" << PCom << " Bytes" << endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Bob Mask Time:" << Qmask << " s" << endl;
-      outfile << " Bob Select Time:" << Qselect << " s" << endl;
-      outfile << " Bob Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Bob Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+      outfile << " ES_ Total Time:" << Ptime << " s" << endl;
+      outfile << " ES_ Share Time:" << Pupload << " s" << endl;
+      outfile << " ES_ Process Time:" << Pprocess << " s" << endl;
+      outfile << " ES_ Communication:" << PCom << " Bytes" << endl;
+      outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+      outfile << " ES_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " ES_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " ES_ Select Time:" << Qselect << " s" << endl;
+      outfile << " ES_ Mask Communication:" << QCom1 << " Bytes" << endl;
+      outfile << " ES_ Select Communication:" << QCom2 << " Bytes" << endl;
+      outfile << " ES_ Communication:" << QCom << " Bytes" << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
@@ -9440,28 +9654,28 @@ int maindowq(int argc, char **argv)
       ofstream outfile;
       outfile.open("../../tests/out_A.txt", ios::app | ios::in);
       cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
-      cout << "Alice Share Time\t" << RED << Pupload << " s" << RESET << endl;
-      cout << "Alice Process Time\t" << RED << Pprocess << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Ptime << " s" << RESET << endl;    
+      cout << " CS_Share Time\t" << RED << Pupload << " s" << RESET << endl;
+      cout << " CS_Process Time\t" << RED << Pprocess << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " CS_Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " CS_Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
       outfile << " -------------------------------------" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "NonThread" << endl;
       outfile << "n = " + to_string(n) + " " + dataname + "Thread" << endl;  
-      outfile << " Alice Total Time:" << Ptime << " s" << endl;
-      outfile << " Alice Share Time:" << Pupload << " s" << endl;
-      outfile << " Alice Process Time:" << Pprocess << " s" << endl;
-      outfile << " Alice Communication:" << PCom << " Bytes" << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Alice Mask Time:" << Qmask << " s" << endl;
-      outfile << " Alice Select Time:" << Qselect << " s" << endl;
-      outfile << " Alice Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Alice Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
+      outfile << " CS_ Total Time:" << Ptime << " s" << endl;
+      outfile << " CS_ Share Time:" << Pupload << " s" << endl;
+      outfile << " CS_ Process Time:" << Pprocess << " s" << endl;
+      outfile << " CS_ Communication:" << PCom << " Bytes" << endl;
+      outfile << " CS_ Total Time:" << Qtime << " s" << endl;
+      outfile << " CS_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " CS_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " CS_ Select Time:" << Qselect << " s" << endl;
+      outfile << " CS_ Mask Communication:" << QCom1 << " Bytes" << endl;
+      outfile << " CS_ Select Communication:" << QCom2 << " Bytes" << endl;
+      outfile << " CS_ Communication:" << QCom << " Bytes" << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
@@ -9470,28 +9684,28 @@ int maindowq(int argc, char **argv)
       ofstream outfile;
       outfile.open("../../tests/out_B.txt", ios::app | ios::in);
       cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
-      cout << "Bob Share Time\t" << RED << Pupload << " s" << RESET << endl;
-      cout << "Bob Process Time\t" << RED << Pprocess << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Ptime << " s" << RESET << endl;
+      cout << " ES_ Share Time\t" << RED << Pupload << " s" << RESET << endl;
+      cout << " ES_ Process Time\t" << RED << Pprocess << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " ES_ Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " ES_ Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
       outfile << " -------------------------------------" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "NonThread"<< endl;
       outfile << "n = " + to_string(n) + " " + dataname + "Thread"<< endl;  
-      outfile << " Bob Total Time:" << Ptime << " s" << endl;
-      outfile << " Bob Share Time:" << Pupload << " s" << endl;
-      outfile << " Bob Process Time:" << Pprocess << " s" << endl;
-      outfile << " Bob Communication:" << PCom << " Bytes" << endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Bob Mask Time:" << Qmask << " s" << endl;
-      outfile << " Bob Select Time:" << Qselect << " s" << endl;
-      outfile << " Bob Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Bob Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+      outfile << " ES_ Total Time:" << Ptime << " s" << endl;
+      outfile << " ES_ Share Time:" << Pupload << " s" << endl;
+      outfile << " ES_ Process Time:" << Pprocess << " s" << endl;
+      outfile << " ES_ Communication:" << PCom << " Bytes" << endl;
+      outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+      outfile << " ES_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " ES_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " ES_ Select Time:" << Qselect << " s" << endl;
+      outfile << " ES_ Mask Communication:" << QCom1 << " Bytes" << endl;
+      outfile << " ES_ Select Communication:" << QCom2 << " Bytes" << endl;
+      outfile << " ES_ Communication:" << QCom << " Bytes" << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
@@ -9507,7 +9721,7 @@ int maindowq(int argc, char **argv)
   return 0;
 }
 
-//whole time
+//whole time wq
 int mainwq(int argc, char **argv)
 {
   ArgMapping amap;
@@ -9614,25 +9828,25 @@ int mainwq(int argc, char **argv)
         ofstream outfile;
         outfile.open("../../tests/out_A.txt", ios::app | ios::in);
         cout << "n = " + to_string(n) + " " + dataname << endl;
-        cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
-        cout << "Alice Share Time\t" << RED << ss_upload << " s" << RESET << endl;
-        cout << "Alice Process Time\t" << RED << ss_process << " s" << RESET << endl;
-        cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-        cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-        cout << "Alice Dummy Time\t" << RED << ss_dummy << " s" << RESET << endl;
-        cout << "Alice Select Time\t" << RED << ss_select << " s" << RESET << endl;
-        cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+        cout << " CS_Total Time\t" << RED << Ptime << " s" << RESET << endl;    
+        cout << " CS_Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+        cout << " CS_Process Time\t" << RED << ss_process << " s" << RESET << endl;
+        cout << " CS_Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+        cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+        cout << " CS_Dummy Time\t" << RED << ss_dummy << " s" << RESET << endl;
+        cout << " CS_Select Time\t" << RED << ss_select << " s" << RESET << endl;
+        cout << " CS_Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
         outfile << " -------------------------------------" << endl;
         outfile << "n = " + to_string(n) + " " + dataname << endl;
-        outfile << " Alice Total Time:" << Ptime << " s" << endl;
-        outfile << " Alice Share Time:" << ss_upload << " s" << endl;
-        outfile << " Alice Process Time:" << ss_process << " s" << endl;
-        outfile << " Alice Communication:" << PCom << " Bytes" << endl;
-        outfile << " Alice Total Time:" << Qtime << " s" << endl;
-        outfile << " Alice Dummy Time:" << ss_dummy << " s" << endl;
-        outfile << " Alice Mask Time:" << ss_mask << " s" << endl;
-        outfile << " Alice Select Time:" << ss_select << " s" << endl;
-        outfile << " Alice Communication:" << QCom << " Bytes" << endl;
+        outfile << " CS_ Total Time:" << Ptime << " s" << endl;
+        outfile << " CS_ Share Time:" << ss_upload << " s" << endl;
+        outfile << " CS_ Process Time:" << ss_process << " s" << endl;
+        outfile << " CS_ Communication:" << PCom << " Bytes" << endl;
+        outfile << " CS_ Total Time:" << Qtime << " s" << endl;
+        outfile << " CS_ Dummy Time:" << ss_dummy << " s" << endl;
+        outfile << " CS_ Mask Time:" << ss_mask << " s" << endl;
+        outfile << " CS_ Select Time:" << ss_select << " s" << endl;
+        outfile << " CS_ Communication:" << QCom << " Bytes" << endl;
         for (uint64_t b : XX)
         {
           outfile << b << "\t";
@@ -9646,25 +9860,25 @@ int mainwq(int argc, char **argv)
         ofstream outfile;
         outfile.open("../../tests/out_B.txt", ios::app | ios::in);
         cout << "n = " + to_string(n) + " " + dataname << endl;
-        cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
-        cout << "Bob Share Time\t" << RED << ss_upload << " s" << RESET << endl;
-        cout << "Bob Process Time\t" << RED << ss_process << " s" << RESET << endl;
-        cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
-        cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-        cout << "Bob Dummy Time\t" << RED << ss_dummy << " s" << RESET << endl;
-        cout << "Bob Select Time\t" << RED << ss_select << " s" << RESET << endl;
-        cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+        cout << " ES_ Total Time\t" << RED << Ptime << " s" << RESET << endl;
+        cout << " ES_ Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+        cout << " ES_ Process Time\t" << RED << ss_process << " s" << RESET << endl;
+        cout << " ES_ Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+        cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+        cout << " ES_ Dummy Time\t" << RED << ss_dummy << " s" << RESET << endl;
+        cout << " ES_ Select Time\t" << RED << ss_select << " s" << RESET << endl;
+        cout << " ES_ Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
         outfile << " -------------------------------------" << endl;
         outfile << "n = " + to_string(n) + " " + dataname << endl;
-        outfile << " Bob Total Time:" << Ptime << " s" << endl;
-        outfile << " Bob Share Time:" << ss_upload << " s" << endl;
-        outfile << " Bob Process Time:" << ss_process << " s" << endl;
-        outfile << " Bob Communication:" << PCom << " Bytes" << endl;
-        outfile << " Bob Total Time:" << Qtime << " s" << endl;
-        outfile << " Bob Dummy Time:" << ss_dummy << " s" << endl;
-        outfile << " Bob Mask Time:" << ss_mask << " s" << endl;
-        outfile << " Bob Select Time:" << ss_select << " s" << endl;
-        outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+        outfile << " ES_ Total Time:" << Ptime << " s" << endl;
+        outfile << " ES_ Share Time:" << ss_upload << " s" << endl;
+        outfile << " ES_ Process Time:" << ss_process << " s" << endl;
+        outfile << " ES_ Communication:" << PCom << " Bytes" << endl;
+        outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+        outfile << " ES_ Dummy Time:" << ss_dummy << " s" << endl;
+        outfile << " ES_ Mask Time:" << ss_mask << " s" << endl;
+        outfile << " ES_ Select Time:" << ss_select << " s" << endl;
+        outfile << " ES_ Communication:" << QCom << " Bytes" << endl;
         for (uint64_t b : XX)
         {
           outfile << b << "\t";
@@ -9817,26 +10031,26 @@ int mainQua(int argc, char **argv)
       if (party == ALICE)
       {
         cout << "n = " + to_string(n) + " " + dataname << endl;
-        cout << "Alice Skyline Number\t" << RED << Qlen << RESET << endl;
-        cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-        cout << "Alice Read Time\t" << RED << Qread << " s" << RESET << endl;
-        cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-        cout << "Alice Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-        cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-        cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+        cout << " CS_Skyline Number\t" << RED << Qlen << RESET << endl;
+        cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+        cout << " CS_Read Time\t" << RED << Qread << " s" << RESET << endl;
+        cout << " CS_Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+        cout << " CS_Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+        cout << " CS_Select Time\t" << RED << Qselect << " s" << RESET << endl;
+        cout << " CS_Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
         ofstream outfile;
         outfile.open("../../tests/out_A_qua.txt", ios::app | ios::in);
         outfile << " -------------------------------------" << endl;
         outfile << "n = " + to_string(n) + " " + dataname + "NonThread:Quadrant" << endl;
         // outfile << "n = " + to_string(n) + " " + dataname + "Thread" << endl;
-        outfile << " Alice Total Time:" << Qtime << " s" << endl;
-        outfile << " Alice Read Time:" << Qread << " s" << endl;
-        outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-        outfile << " Alice Mask Time:" << Qmask << " s" << endl;
-        outfile << " Alice Select Time:" << Qselect << " s" << endl;
-        outfile << " Alice Mask Communication:" << QCom1 << " Bytes" << endl;
-        outfile << " Alice Select Communication:" << QCom2 << " Bytes" << endl;
-        outfile << " Alice Communication:" << QCom << " Bytes" << endl;
+        outfile << " CS_ Total Time:" << Qtime << " s" << endl;
+        outfile << " CS_ Read Time:" << Qread << " s" << endl;
+        outfile << " CS_ Dummy Time:" << Qdummy << " s" << endl;
+        outfile << " CS_ Mask Time:" << Qmask << " s" << endl;
+        outfile << " CS_ Select Time:" << Qselect << " s" << endl;
+        outfile << " CS_ Mask Communication:" << QCom1 << " Bytes" << endl;
+        outfile << " CS_ Select Communication:" << QCom2 << " Bytes" << endl;
+        outfile << " CS_ Communication:" << QCom << " Bytes" << endl;
         // for (uint64_t b : XX)
         // {
         //   outfile << b << "\t";
@@ -9848,26 +10062,26 @@ int mainQua(int argc, char **argv)
       else
       {
         cout << "n = " + to_string(n) + " " + dataname << endl;
-        cout << "Bob Skyline Number\t" << RED << Qlen << RESET << endl;
-        cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-        cout << "Bob Read Time\t" << RED << Qread << " s" << RESET << endl;
-        cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-        cout << "Bob Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-        cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-        cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+        cout << " ES_ Skyline Number\t" << RED << Qlen << RESET << endl;
+        cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+        cout << " ES_ Read Time\t" << RED << Qread << " s" << RESET << endl;
+        cout << " ES_ Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+        cout << " ES_ Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+        cout << " ES_ Select Time\t" << RED << Qselect << " s" << RESET << endl;
+        cout << " ES_ Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
         ofstream outfile;
         outfile.open("../../tests/out_B_qua.txt", ios::app | ios::in);
         outfile << " -------------------------------------" << endl;
         outfile << "n = " + to_string(n) + " " + dataname + "NonThread:Quadrant"<< endl;
         // outfile << "n = " + to_string(n) + " " + dataname + "Thread"<< endl;
-        outfile << " Bob Total Time:" << Qtime << " s" << endl;
-        outfile << " Bob Read Time:" << Qread << " s" << endl;
-        outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-        outfile << " Bob Mask Time:" << Qmask << " s" << endl;
-        outfile << " Bob Select Time:" << Qselect << " s" << endl;
-        outfile << " Bob Mask Communication:" << QCom1 << " Bytes" << endl;
-        outfile << " Bob Select Communication:" << QCom2 << " Bytes" << endl;
-        outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+        outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+        outfile << " ES_ Read Time:" << Qread << " s" << endl;
+        outfile << " ES_ Dummy Time:" << Qdummy << " s" << endl;
+        outfile << " ES_ Mask Time:" << Qmask << " s" << endl;
+        outfile << " ES_ Select Time:" << Qselect << " s" << endl;
+        outfile << " ES_ Mask Communication:" << QCom1 << " Bytes" << endl;
+        outfile << " ES_ Select Communication:" << QCom2 << " Bytes" << endl;
+        outfile << " ES_ Communication:" << QCom << " Bytes" << endl;
         // for (uint64_t b : XX)
         // {
         //   outfile << b << "\t";
@@ -9983,26 +10197,26 @@ int mainQua(int argc, char **argv)
       if (party == ALICE)
       {
         cout << "n = " + to_string(n) + " " + dataname << endl;
-        cout << "Alice Skyline Number\t" << RED << Qlen << RESET << endl;
-        cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-        cout << "Alice Read Time\t" << RED << Qread << " s" << RESET << endl;
-        cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-        cout << "Alice Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-        cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-        cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+        cout << " CS_Skyline Number\t" << RED << Qlen << RESET << endl;
+        cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+        cout << " CS_Read Time\t" << RED << Qread << " s" << RESET << endl;
+        cout << " CS_Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+        cout << " CS_Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+        cout << " CS_Select Time\t" << RED << Qselect << " s" << RESET << endl;
+        cout << " CS_Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
         ofstream outfile;
         outfile.open("../../tests/out_A_qua.txt", ios::app | ios::in);
         outfile << " -------------------------------------" << endl;
         // outfile << "n = " + to_string(n) + " " + dataname + "NonThread:Quadrant" << endl;
         outfile << "n = " + to_string(n) + " " + dataname + "Thread:Quadrant" << endl;
-        outfile << " Alice Total Time:" << Qtime << " s" << endl;
-        outfile << " Alice Read Time:" << Qread << " s" << endl;
-        outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-        outfile << " Alice Mask Time:" << Qmask << " s" << endl;
-        outfile << " Alice Select Time:" << Qselect << " s" << endl;
-        outfile << " Alice Mask Communication:" << QCom1 << " Bytes" << endl;
-        outfile << " Alice Select Communication:" << QCom2 << " Bytes" << endl;
-        outfile << " Alice Communication:" << QCom << " Bytes" << endl;
+        outfile << " CS_ Total Time:" << Qtime << " s" << endl;
+        outfile << " CS_ Read Time:" << Qread << " s" << endl;
+        outfile << " CS_ Dummy Time:" << Qdummy << " s" << endl;
+        outfile << " CS_ Mask Time:" << Qmask << " s" << endl;
+        outfile << " CS_ Select Time:" << Qselect << " s" << endl;
+        outfile << " CS_ Mask Communication:" << QCom1 << " Bytes" << endl;
+        outfile << " CS_ Select Communication:" << QCom2 << " Bytes" << endl;
+        outfile << " CS_ Communication:" << QCom << " Bytes" << endl;
         // for (uint64_t b : XX)
         // {
         //   outfile << b << "\t";
@@ -10014,26 +10228,26 @@ int mainQua(int argc, char **argv)
       else
       {
         cout << "n = " + to_string(n) + " " + dataname << endl;
-        cout << "Bob Skyline Number\t" << RED << Qlen << RESET << endl;
-        cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-        cout << "Bob Read Time\t" << RED << Qread << " s" << RESET << endl;
-        cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-        cout << "Bob Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-        cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-        cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+        cout << " ES_ Skyline Number\t" << RED << Qlen << RESET << endl;
+        cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+        cout << " ES_ Read Time\t" << RED << Qread << " s" << RESET << endl;
+        cout << " ES_ Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+        cout << " ES_ Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+        cout << " ES_ Select Time\t" << RED << Qselect << " s" << RESET << endl;
+        cout << " ES_ Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
         ofstream outfile;
         outfile.open("../../tests/out_B_qua.txt", ios::app | ios::in);
         outfile << " -------------------------------------" << endl;
         // outfile << "n = " + to_string(n) + " " + dataname + "NonThread:Quadrant"<< endl;
         outfile << "n = " + to_string(n) + " " + dataname + "Thread:Quadrant"<< endl;
-        outfile << " Bob Total Time:" << Qtime << " s" << endl;
-        outfile << " Bob Read Time:" << Qread << " s" << endl;
-        outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-        outfile << " Bob Mask Time:" << Qmask << " s" << endl;
-        outfile << " Bob Select Time:" << Qselect << " s" << endl;
-        outfile << " Bob Mask Communication:" << QCom1 << " Bytes" << endl;
-        outfile << " Bob Select Communication:" << QCom2 << " Bytes" << endl;
-        outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+        outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+        outfile << " ES_ Read Time:" << Qread << " s" << endl;
+        outfile << " ES_ Dummy Time:" << Qdummy << " s" << endl;
+        outfile << " ES_ Mask Time:" << Qmask << " s" << endl;
+        outfile << " ES_ Select Time:" << Qselect << " s" << endl;
+        outfile << " ES_ Mask Communication:" << QCom1 << " Bytes" << endl;
+        outfile << " ES_ Select Communication:" << QCom2 << " Bytes" << endl;
+        outfile << " ES_ Communication:" << QCom << " Bytes" << endl;
         // for (uint64_t b : XX)
         // {
         //   outfile << b << "\t";
@@ -10179,26 +10393,26 @@ int maindoQua(int argc, char **argv)
     if (party == ALICE)
     {
       cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " CS_Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " CS_Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " CS_Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " CS_Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " CS_Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
       ofstream outfile;
       outfile.open("../../tests/out_A_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       outfile << "n = " + to_string(n) + " " + dataname + "NonThread:Quadrant" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "Thread" << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Read Time:" << Qread << " s" << endl;
-      outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Alice Mask Time:" << Qmask << " s" << endl;
-      outfile << " Alice Select Time:" << Qselect << " s" << endl;
-      outfile << " Alice Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Alice Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
+      outfile << " CS_ Total Time:" << Qtime << " s" << endl;
+      outfile << " CS_ Read Time:" << Qread << " s" << endl;
+      outfile << " CS_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " CS_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " CS_ Select Time:" << Qselect << " s" << endl;
+      outfile << " CS_ Mask Communication:" << QCom1 << " Bytes" << endl;
+      outfile << " CS_ Select Communication:" << QCom2 << " Bytes" << endl;
+      outfile << " CS_ Communication:" << QCom << " Bytes" << endl;
       // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
@@ -10210,26 +10424,26 @@ int maindoQua(int argc, char **argv)
     else
     {
       cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Bob Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " ES_ Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " ES_ Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " ES_ Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " ES_ Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " ES_ Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
       ofstream outfile;
       outfile.open("../../tests/out_B_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       outfile << "n = " + to_string(n) + " " + dataname + "NonThread:Quadrant"<< endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "Thread"<< endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Read Time:" << Qread << " s" << endl;
-      outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Bob Mask Time:" << Qmask << " s" << endl;
-      outfile << " Bob Select Time:" << Qselect << " s" << endl;
-      outfile << " Bob Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Bob Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+      outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+      outfile << " ES_ Read Time:" << Qread << " s" << endl;
+      outfile << " ES_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " ES_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " ES_ Select Time:" << Qselect << " s" << endl;
+      outfile << " ES_ Mask Communication:" << QCom1 << " Bytes" << endl;
+      outfile << " ES_ Select Communication:" << QCom2 << " Bytes" << endl;
+      outfile << " ES_ Communication:" << QCom << " Bytes" << endl;
       // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
@@ -10343,26 +10557,26 @@ int maindoQua(int argc, char **argv)
     if (party == ALICE)
     {
       cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " CS_Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " CS_Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " CS_Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " CS_Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " CS_Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
       ofstream outfile;
       outfile.open("../../tests/out_A_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "NonThread:Quadrant" << endl;
       outfile << "n = " + to_string(n) + " " + dataname + "Thread:Quadrant" << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Read Time:" << Qread << " s" << endl;
-      outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Alice Mask Time:" << Qmask << " s" << endl;
-      outfile << " Alice Select Time:" << Qselect << " s" << endl;
-      outfile << " Alice Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Alice Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
+      outfile << " CS_ Total Time:" << Qtime << " s" << endl;
+      outfile << " CS_ Read Time:" << Qread << " s" << endl;
+      outfile << " CS_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " CS_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " CS_ Select Time:" << Qselect << " s" << endl;
+      outfile << " CS_ Mask Communication:" << QCom1 << " Bytes" << endl;
+      outfile << " CS_ Select Communication:" << QCom2 << " Bytes" << endl;
+      outfile << " CS_ Communication:" << QCom << " Bytes" << endl;
       // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
@@ -10374,26 +10588,26 @@ int maindoQua(int argc, char **argv)
     else
     {
       cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Bob Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " ES_ Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " ES_ Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " ES_ Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " ES_ Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " ES_ Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
       ofstream outfile;
       outfile.open("../../tests/out_B_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "NonThread:Quadrant"<< endl;
       outfile << "n = " + to_string(n) + " " + dataname + "Thread:Quadrant"<< endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Read Time:" << Qread << " s" << endl;
-      outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Bob Mask Time:" << Qmask << " s" << endl;
-      outfile << " Bob Select Time:" << Qselect << " s" << endl;
-      outfile << " Bob Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Bob Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+      outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+      outfile << " ES_ Read Time:" << Qread << " s" << endl;
+      outfile << " ES_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " ES_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " ES_ Select Time:" << Qselect << " s" << endl;
+      outfile << " ES_ Mask Communication:" << QCom1 << " Bytes" << endl;
+      outfile << " ES_ Select Communication:" << QCom2 << " Bytes" << endl;
+      outfile << " ES_ Communication:" << QCom << " Bytes" << endl;
       // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
@@ -10414,13 +10628,15 @@ int maindoQua(int argc, char **argv)
   return 0;
 }
 
-//generate all quadrant skyline diagram
+//generate all quadrant skyline diagram  GenQua
 int mainGenQua(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
   amap.arg("p", port, "Port Number");
   amap.arg("ip", address, "IP Address of server (ALICE)");
+  amap.arg("Pname", Pn, "data name");
+  amap.arg("Psize", Pst, "data size");
   amap.parse(argc, argv);
   for (int i = 0; i < THs; i++)
   {
@@ -10440,12 +10656,13 @@ int mainGenQua(int argc, char **argv)
   t[6] = 9000;
   string filen[3] ={"/small-correlated.txt","/small-uniformly-distributed.txt","/small-anti-correlated.txt"};
   string datan[3] ={"corr-","unif-","anti-"};
-  for (int kk = 0; kk < 3; kk++)
-  {
-    filename = filen[kk];
-    dataname = datan[kk];
-    for (int i = 2; i <= 6; i++)
-    {
+  // for (int kk = 0; kk < 3; kk++)
+  // {
+    filename = filen[Pn];
+    dataname = datan[Pn];
+    // for (int i = 2; i <= 6; i++)
+    // {
+      int i = Pst;
       n = t[i];
       data_path = "./data/input=10000/size=" + to_string(n) + filename; 
       vector<vector<uint32_t>> p;
@@ -10467,46 +10684,46 @@ int mainGenQua(int argc, char **argv)
       for(int j = 0; j< THs; j++){
         comm_end+=Iot[j]->counter;
       }
-      double PCom = comm_end-comm_start;
+      double PCom = (comm_end-comm_start) / 1024 / 1024;
       q.clear();
       if (party == ALICE)
       {
         cout << "n = " + to_string(n) + " " + dataname << endl;
-        cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
-        cout << "Alice Share Time\t" << RED << ss_upload << " s" << RESET << endl;
-        cout << "Alice Process Time\t" << RED << ss_process << " s" << RESET << endl;
-        cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+        cout << " CS_Total Time\t" << RED << Ptime << " s" << RESET << endl;    
+        cout << " CS_Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+        cout << " CS_Process Time\t" << RED << ss_process << " s" << RESET << endl;
+        cout << " CS_Communication\t" << BLUE << PCom << " MB" << RESET << endl;
         ofstream outfile;
         outfile.open("../../tests/out_A.txt", ios::app | ios::in);
         outfile << " -------------------------------------" << endl;
         outfile << "n = " + to_string(n) + " " + dataname << endl;
-        outfile << " Alice Total Time:" << Ptime << " s" << endl;
-        outfile << " Alice Share Time:" << ss_upload << " s" << endl;
-        outfile << " Alice Process Time:" << ss_process << " s" << endl;
-        outfile << " Alice Communication:" << PCom << " Bytes" << endl;
+        outfile << " CS_ Total Time:" << Ptime << " s" << endl;
+        outfile << " CS_ Share Time:" << ss_upload << " s" << endl;
+        outfile << " CS_ Process Time:" << ss_process << " s" << endl;
+        outfile << " CS_ Communication:" << PCom << " MB" << endl;
         outfile << " -------------------------------------" << endl;
         outfile.close();
       }
       else
       {
         cout << "n = " + to_string(n) + " " + dataname << endl;
-        cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
-        cout << "Bob Share Time\t" << RED << ss_upload << " s" << RESET << endl;
-        cout << "Bob Process Time\t" << RED << ss_process << " s" << RESET << endl;
-        cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+        cout << " ES_ Total Time\t" << RED << Ptime << " s" << RESET << endl;
+        cout << " ES_ Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+        cout << " ES_ Process Time\t" << RED << ss_process << " s" << RESET << endl;
+        cout << " ES_ Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
         ofstream outfile;
         outfile.open("../../tests/out_B.txt", ios::app | ios::in);
         outfile << " -------------------------------------" << endl;
         outfile << "n = " + to_string(n) + " " + dataname << endl;
-        outfile << " Bob Total Time:" << Ptime << " s" << endl;
-        outfile << " Bob Share Time:" << ss_upload << " s" << endl;
-        outfile << " Bob Process Time:" << ss_process << " s" << endl;
-        outfile << " Bob Communication:" << PCom << " Bytes" << endl;
+        outfile << " ES_ Total Time:" << Ptime << " s" << endl;
+        outfile << " ES_ Share Time:" << ss_upload << " s" << endl;
+        outfile << " ES_ Process Time:" << ss_process << " s" << endl;
+        outfile << " ES_ Communication:" << PCom << " Bytes" << endl;
         outfile << " -------------------------------------" << endl;
         outfile.close();
       }
-    }
-  }
+  //   }
+  // }
   delete[] t;
   for (int i = 0; i < THs; i++)
   {
@@ -10567,36 +10784,36 @@ int maindoGenQua(int argc, char **argv)
     if (party == ALICE)
     {
       cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Total Time\t" << RED << Ptime << " s" << RESET << endl;    
-      cout << "Alice Share Time\t" << RED << ss_upload << " s" << RESET << endl;
-      cout << "Alice Process Time\t" << RED << ss_process << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Ptime << " s" << RESET << endl;    
+      cout << " CS_Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+      cout << " CS_Process Time\t" << RED << ss_process << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
       ofstream outfile;
       outfile.open("../../tests/out_A.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       outfile << "n = " + to_string(n) + " " + dataname << endl;
-      outfile << " Alice Total Time:" << Ptime << " s" << endl;
-      outfile << " Alice Share Time:" << ss_upload << " s" << endl;
-      outfile << " Alice Process Time:" << ss_process << " s" << endl;
-      outfile << " Alice Communication:" << PCom << " Bytes" << endl;
+      outfile << " CS_ Total Time:" << Ptime << " s" << endl;
+      outfile << " CS_ Share Time:" << ss_upload << " s" << endl;
+      outfile << " CS_ Process Time:" << ss_process << " s" << endl;
+      outfile << " CS_ Communication:" << PCom << " Bytes" << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
     else
     {
       cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Total Time\t" << RED << Ptime << " s" << RESET << endl;
-      cout << "Bob Share Time\t" << RED << ss_upload << " s" << RESET << endl;
-      cout << "Bob Process Time\t" << RED << ss_process << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Ptime << " s" << RESET << endl;
+      cout << " ES_ Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+      cout << " ES_ Process Time\t" << RED << ss_process << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << PCom << " Bytes" << RESET << endl;
       ofstream outfile;
       outfile.open("../../tests/out_B.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       outfile << "n = " + to_string(n) + " " + dataname << endl;
-      outfile << " Bob Total Time:" << Ptime << " s" << endl;
-      outfile << " Bob Share Time:" << ss_upload << " s" << endl;
-      outfile << " Bob Process Time:" << ss_process << " s" << endl;
-      outfile << " Bob Communication:" << PCom << " Bytes" << endl;
+      outfile << " ES_ Total Time:" << Ptime << " s" << endl;
+      outfile << " ES_ Share Time:" << ss_upload << " s" << endl;
+      outfile << " ES_ Process Time:" << ss_process << " s" << endl;
+      outfile << " ES_ Communication:" << PCom << " Bytes" << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
@@ -10697,16 +10914,16 @@ int main01(int argc, char **argv)
   //     ofstream outfile;
   //     outfile.open("../../tests/out_A.txt", ios::app | ios::in);
   //     cout << "n = " + to_string(n) + " " + dataname << endl;
-  //     cout << "Alice Total Time\t" << RED << time << " s" << RESET << endl;    
-  //     cout << "Alice Share Time\t" << RED << ss_upload << " s" << RESET << endl;
-  //     cout << "Alice Process Time\t" << RED << ss_process << " s" << RESET << endl;
-  //     cout << "Alice Communication\t" << BLUE << ((double)(comm_end - comm_start) * 8) << " bits" << RESET << endl;
+  //     cout << " CS_Total Time\t" << RED << time << " s" << RESET << endl;    
+  //     cout << " CS_Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+  //     cout << " CS_Process Time\t" << RED << ss_process << " s" << RESET << endl;
+  //     cout << " CS_Communication\t" << BLUE << ((double)(comm_end - comm_start) * 8) << " bits" << RESET << endl;
   //     outfile << " -------------------------------------" << endl;
   //     outfile << "n = " + to_string(n) + " " + dataname << endl;
-  //     outfile << " Alice Total Time:" << time << " s" << endl;
-  //     outfile << " Alice Share Time:" << ss_upload << " s" << endl;
-  //     outfile << " Alice Process Time:" << ss_process << " s" << endl;
-  //     outfile << " Alice Communication:" << ((double)(comm_end - comm_start) * 8) << " bits" << endl;
+  //     outfile << " CS_ Total Time:" << time << " s" << endl;
+  //     outfile << " CS_ Share Time:" << ss_upload << " s" << endl;
+  //     outfile << " CS_ Process Time:" << ss_process << " s" << endl;
+  //     outfile << " CS_ Communication:" << ((double)(comm_end - comm_start) * 8) << " bits" << endl;
   //     for (uint64_t b : XX)
   //     {
   //       outfile << b << "\t";
@@ -10720,16 +10937,16 @@ int main01(int argc, char **argv)
   //     ofstream outfile;
   //     outfile.open("../../tests/out_B.txt", ios::app | ios::in);
   //     cout << "n = " + to_string(n) + " " + dataname << endl;
-  //     cout << "Bob Total Time\t" << RED << time << " s" << RESET << endl;
-  //     cout << "Bob Share Time\t" << RED << ss_upload << " s" << RESET << endl;
-  //     cout << "Bob Process Time\t" << RED << ss_process << " s" << RESET << endl;
-  //     cout << "Bob Communication\t" << BLUE << ((double)(comm_end - comm_start) * 8) << " bits" << RESET << endl;
+  //     cout << " ES_ Total Time\t" << RED << time << " s" << RESET << endl;
+  //     cout << " ES_ Share Time\t" << RED << ss_upload << " s" << RESET << endl;
+  //     cout << " ES_ Process Time\t" << RED << ss_process << " s" << RESET << endl;
+  //     cout << " ES_ Communication\t" << BLUE << ((double)(comm_end - comm_start) * 8) << " bits" << RESET << endl;
   //     outfile << " -------------------------------------" << endl;
   //     outfile << "n = " + to_string(n) + " " + dataname << endl;
-  //     outfile << " Bob Total Time:" << time << " s" << endl;
-  //     outfile << " Bob Share Time:" << ss_upload << " s" << endl;
-  //     outfile << " Bob Process Time:" << ss_process << " s" << endl;
-  //     outfile << " Bob Communication:" << ((double)(comm_end - comm_start) * 8) << " bits" << endl;
+  //     outfile << " ES_ Total Time:" << time << " s" << endl;
+  //     outfile << " ES_ Share Time:" << ss_upload << " s" << endl;
+  //     outfile << " ES_ Process Time:" << ss_process << " s" << endl;
+  //     outfile << " ES_ Communication:" << ((double)(comm_end - comm_start) * 8) << " bits" << endl;
   //     for (uint32_t b : XX)
   //     {
   //       outfile << b << "\t";
@@ -10784,12 +11001,14 @@ int mainTestCmp(int argc, char **argv)
 }
 
 //Dynamic skyline query
-int mainD(int argc, char **argv)
+int main(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
   amap.arg("p", port, "Port Number");
   amap.arg("ip", address, "IP Address of server (ALICE)");
+  amap.arg("Pname", Pn, "data name");
+  amap.arg("Psize", Pst, "data size");
   amap.parse(argc, argv);
   for (int i = 0; i < THs; i++)
   {
@@ -10799,6 +11018,7 @@ int mainD(int argc, char **argv)
     Prodt[i] = new LinearOT(party, Iot[i], Otpackt[i]);
   }
   srand(time(0)+party);
+  cout << "Party:" << party << endl;
   int *t = new int[7];
   t[0] = 10;
   t[1] = 100;
@@ -10809,12 +11029,17 @@ int mainD(int argc, char **argv)
   t[6] = 9000;
   string filen[3] ={"/small-correlated.txt","/small-uniformly-distributed.txt","/small-anti-correlated.txt"};
   string datan[3] ={"corr-","unif-","anti-"};
-  for (int kk = 0; kk < 1; kk++)
-  {
-    filename = filen[kk];
-    dataname = datan[kk];
-  for (int i = 2; i <= 6; i++)
-  {
+  
+  // Pn = 0, Pst = 0
+  // for (int kk = 0; kk < 3; kk++)
+  // {
+  //   filename = filen[kk];
+  //   dataname = datan[kk];
+    filename = filen[Pn];
+    dataname = datan[Pn];
+  // for (int i = 1; i <= 1; i++)
+  // {
+    int i = Pst;
     n = t[i];
     data_path = "./data/input=10000/size=" + to_string(n) + filename;
     vector<vector<uint32_t>> p;
@@ -10822,6 +11047,7 @@ int mainD(int argc, char **argv)
     loadG(p, G);
     m = p[0].size();
     SSG(G, SS_G);
+    
     // plain(p, q);
     double sr = omp_get_wtime();
     // ReadSKyline();
@@ -10829,7 +11055,9 @@ int mainD(int argc, char **argv)
     double er = omp_get_wtime();
     double ss_read = er - sr;
     double Qtime = 0, QCom = 0, QCom1 = 0, QCom2 = 0, Qread = 0, Qdummy = 0, Qmask = 0, QselectSky = 0, Qselect = 0, Qlen = 0;
-    int itrs = 20;
+    int itrs = 10;
+    vector<vector<uint32_t>> qAll;
+    vector<vector<uint64_t>> resAll;
     for (int itr = 0; itr < itrs; itr++)
     {
       vector<uint32_t> q(m);
@@ -10860,6 +11088,7 @@ int mainD(int argc, char **argv)
       // q[0] = 7000;
       // q[1] = 5000;
       cout<<"q-"<<itr<<":"<<q[0]<<"\t"<<q[1]<<endl;
+      qAll.push_back(q);
       vector<uint32_t> Q(q.size());
       SSQ(q, Q);
       uint32_t len = 0;
@@ -10872,6 +11101,9 @@ int mainD(int argc, char **argv)
       // uint64_t *X = SkylineRes(Q, len);
       uint64_t *X = SkylineResbyQ(Q, len);
         // uint64_t *X = SkylineResbyQ_T(Q, len);
+      vector<uint64_t> XX(len * m);
+      copy(X, X + len * m, XX.begin());
+      resAll.push_back(XX);
       double end = omp_get_wtime();
       Qtime += end - start;
       uint64_t comm_end = 0;
@@ -10891,7 +11123,7 @@ int mainD(int argc, char **argv)
       // vector<uint64_t> XX(len);
       // copy(X, X + len, XX.begin());
       // Skyline_Print(XX);
-      q.clear();
+      // q.clear();
       Q.clear();
       delete[] SS_L;
       for(int j = 0; j< SS_G[0][0] * SS_G[0][1]; j++)
@@ -10900,6 +11132,16 @@ int mainD(int argc, char **argv)
       }
       delete[] SS_Skyline;
     }
+    Qtime = Qtime/ itrs;
+    QCom = QCom/ itrs / 1024 / 1024;
+    QCom1 = QCom1/ itrs / 1024 / 1024;
+    QCom2 = QCom2/ itrs / 1024 / 1024;
+    Qread = Qread/ itrs;
+    Qdummy = Qdummy/ itrs;
+    Qmask = Qmask/ itrs;
+    QselectSky = QselectSky/ itrs;
+    Qselect = Qselect/ itrs;
+    Qlen = Qlen/ itrs;
     p.clear();
     delete[] SS_Con;
     delete[] SS_C;
@@ -10914,84 +11156,89 @@ int mainD(int argc, char **argv)
       delete[] SS_G[j];
     }
     delete[] SS_G;
-    Qtime = Qtime/ itrs;
-    QCom = QCom/ itrs;
-    QCom1 = QCom1/ itrs;
-    QCom2 = QCom2/ itrs;
-    Qread = Qread/ itrs;
-    Qdummy = Qdummy/ itrs;
-    Qmask = Qmask/ itrs;
-    QselectSky = QselectSky/ itrs;
-    Qselect = Qselect/ itrs;
-    Qlen = Qlen/ itrs;
+    loadP(p, data_path);
+    loadG(p, G);
+    double f = 0;
+    for (int itr = 0; itr < itrs; itr++)
+    {
+      // cout<<"q-"<<itr<<":"<<qAll[itr][0]<<"\t"<<qAll[itr][1]<<endl;
+      uint64_t *res = plainT(p, qAll[itr]);
+      for (int ii = 0; ii < resAll[itr].size(); ii++)
+      {
+        if (res[ii] != resAll[itr][ii])
+        {
+          f++;
+          break;
+        }
+        // cout << res[ii] << "\t" << resAll[itr][ii] << endl;
+      }
+    }
     if (party == ALICE)
     {
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Alice SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " n = " + to_string(n) + " " + dataname << endl;
+      cout << " CS_Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " CS_Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " CS_Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " CS_Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " CS_SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
+      cout << " CS_Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << QCom << " MB" << RESET << endl;
+      cout << " correct rate:" << ((double )(itrs-f)/itrs * 100) << "%" << endl;
       ofstream outfile;
       outfile.open("../../tests/out_A_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "NonThread-D" << endl;
+      outfile << " n = " + to_string(n) + " " + dataname + "NonThread-D" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "Thread-D" << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Read Time:" << Qread << " s" << endl;
-      outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Alice Mask Time:" << Qmask << " s" << endl;
-      outfile << " Alice SelectQua Time:" << QselectSky << " s" << endl;
-      outfile << " Alice Select Time:" << Qselect << " s" << endl;
-      outfile << " Alice Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Alice Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
-      // for (uint64_t b : XX)
-      // {
-      //   outfile << b << "\t";
-      // }
-      outfile << endl;
+      outfile << " CS_Total Time:" << Qtime << " s" << endl;
+      outfile << " CS_Read Time:" << Qread << " s" << endl;
+      outfile << " CS_Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " CS_Mask Time:" << Qmask << " s" << endl;
+      outfile << " CS_SelectQua Time:" << QselectSky << " s" << endl;
+      outfile << " CS_Select Time:" << Qselect << " s" << endl;
+      outfile << " CS_Mask Communication:" << QCom1 << " MB" << endl;
+      outfile << " CS_Select Communication:" << QCom2 << " MB" << endl;
+      outfile << " CS_Communication:" << QCom << " MB" << endl;
+      outfile << " correct rate:" << ((double )(itrs-f)/itrs * 100) << "%" << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
     else
     {
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Bob Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Bob SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " n = " + to_string(n) + " " + dataname << endl;
+      cout << " ES_ Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " ES_ Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " ES_ Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " ES_ Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " ES_ SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
+      cout << " ES_ Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << QCom << " MB" << RESET << endl;
+      cout << " correct rate:" << ((double )(itrs-f)/itrs * 100) << "%" << endl;
       ofstream outfile;
       outfile.open("../../tests/out_B_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "NonThread-D"<< endl;
+      outfile << " n = " + to_string(n) + " " + dataname + "NonThread-D"<< endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "Thread-D"<< endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Read Time:" << Qread << " s" << endl;
-      outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Bob Mask Time:" << Qmask << " s" << endl;
-      outfile << " Bob SelectQua Time:" << QselectSky << " s" << endl;
-      outfile << " Bob Select Time:" << Qselect << " s" << endl;
-      outfile << " Bob Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Bob Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+      outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+      outfile << " ES_ Read Time:" << Qread << " s" << endl;
+      outfile << " ES_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " ES_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " ES_ SelectQua Time:" << QselectSky << " s" << endl;
+      outfile << " ES_ Select Time:" << Qselect << " s" << endl;
+      outfile << " ES_ Mask Communication:" << QCom1 << " MB" << endl;
+      outfile << " ES_ Select Communication:" << QCom2 << " MB" << endl;
+      outfile << " ES_ Communication:" << QCom << " MB" << endl;
       // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
       // }
-      outfile << endl;
+      outfile << " correct rate:" << ((double )(itrs-f)/itrs * 100) << "%" << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
-  }
-  }
+  // }
+  // }
   delete[] t;
   for (int i = 0; i < THs; i++)
   {
@@ -11010,6 +11257,8 @@ int mainDT(int argc, char **argv)
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
   amap.arg("p", port, "Port Number");
   amap.arg("ip", address, "IP Address of server (ALICE)");
+  amap.arg("Pname", Pn, "data name");
+  amap.arg("Psize", Pst, "data size");
   amap.parse(argc, argv);
   for (int i = 0; i < THs; i++)
   {
@@ -11030,12 +11279,15 @@ int mainDT(int argc, char **argv)
   
   string filen[3] ={"/small-correlated.txt","/small-uniformly-distributed.txt","/small-anti-correlated.txt"};
   string datan[3] ={"corr-","unif-","anti-"};
-  for (int kk = 1; kk < 2; kk++)
-  {
-    filename = filen[kk];
-    dataname = datan[kk];
-  for (int i = 6; i <= 6; i++)
-  {
+  // for (int kk = 0; kk < 3; kk++)
+  // {
+  //   filename = filen[kk];
+  //   dataname = datan[kk];
+    filename = filen[Pn];
+    dataname = datan[Pn];
+  // for (int i = 1; i <= 1; i++)
+  // {
+    int i = Pst;
     n = t[i];
     data_path = "./data/input=10000/size=" + to_string(n) + filename;
     vector<vector<uint32_t>> p;
@@ -11050,7 +11302,9 @@ int mainDT(int argc, char **argv)
     double er = omp_get_wtime();
     double ss_read = er - sr;
     double Qtime = 0, QCom = 0, QCom1 = 0, QCom2 = 0, Qread = 0, Qdummy = 0, Qmask = 0, QselectSky = 0, Qselect = 0, Qlen = 0;
-    int itrs = 20;
+    int itrs = 10;
+    vector<vector<uint32_t>> qAll;
+    vector<vector<uint64_t>> resAll;
     for (int itr = 0; itr < itrs; itr++)
     {
       vector<uint32_t> q(m);
@@ -11081,6 +11335,7 @@ int mainDT(int argc, char **argv)
       // q[0] = 7000;
       // q[1] = 5000;
       cout<<"q-"<<itr<<":"<<q[0]<<"\t"<<q[1]<<endl;
+      qAll.push_back(q);
       vector<uint32_t> Q(q.size());
       SSQ(q, Q);
       uint32_t len = 0;
@@ -11093,6 +11348,9 @@ int mainDT(int argc, char **argv)
       // uint64_t *X = SkylineRes(Q, len);
       // uint64_t *X = SkylineResbyQ(Q, len);
       uint64_t *X = SkylineResbyQ_T(Q, len);
+      vector<uint64_t> XX(len * m);
+      copy(X, X + len * m, XX.begin());
+      resAll.push_back(XX);
       double end = omp_get_wtime();
       Qtime += end - start;
       uint64_t comm_end = 0;
@@ -11112,7 +11370,7 @@ int mainDT(int argc, char **argv)
       // vector<uint64_t> XX(len);
       // copy(X, X + len, XX.begin());
       // Skyline_Print(XX);
-      q.clear();
+      // q.clear();
       Q.clear();
       delete[] SS_L;
       for(int j = 0; j< SS_G[0][0] * SS_G[0][1]; j++)
@@ -11121,6 +11379,16 @@ int mainDT(int argc, char **argv)
       }
       delete[] SS_Skyline;
     }
+    Qtime = Qtime/ itrs;
+    QCom = QCom/ itrs / 1024 / 1024;
+    QCom1 = QCom1/ itrs / 1024 / 1024;
+    QCom2 = QCom2/ itrs / 1024 / 1024;
+    Qread = Qread/ itrs;
+    Qdummy = Qdummy/ itrs;
+    Qmask = Qmask/ itrs;
+    QselectSky = QselectSky/ itrs;
+    Qselect = Qselect/ itrs;
+    Qlen = Qlen/ itrs;
     p.clear();
     delete[] SS_Con;
     delete[] SS_C;
@@ -11135,86 +11403,97 @@ int mainDT(int argc, char **argv)
       delete[] SS_G[j];
     }
     delete[] SS_G;
-    Qtime = Qtime/ itrs;
-    QCom = QCom/ itrs;
-    QCom1 = QCom1/ itrs;
-    QCom2 = QCom2/ itrs;
-    Qread = Qread/ itrs;
-    Qdummy = Qdummy/ itrs;
-    Qmask = Qmask/ itrs;
-    QselectSky = QselectSky/ itrs;
-    Qselect = Qselect/ itrs;
-    Qlen = Qlen/ itrs;
+    loadP(p, data_path);
+    loadG(p, G);
+    double f = 0;
+    for (int itr = 0; itr < itrs; itr++)
+    {
+      // cout<<"q-"<<itr<<":"<<qAll[itr][0]<<"\t"<<qAll[itr][1]<<endl;
+      uint64_t *res = plainT(p, qAll[itr]);
+      for (int ii = 0; ii < resAll[itr].size(); ii++)
+      {
+        if (res[ii] != resAll[itr][ii])
+        {
+          f++;
+          break;
+        }
+        // cout << res[ii] << "\t" << resAll[itr][ii] << endl;
+      }
+    }
     if (party == ALICE)
     {
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Alice SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " n = " + to_string(n) + " " + dataname << endl;
+      cout << " CS_Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " CS_Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " CS_Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " CS_Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " CS_SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
+      cout << " CS_Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << QCom << " MB" << RESET << endl;
+      cout << " correct rate:" << ((double )(itrs-f)/itrs * 100) << "%" << endl;
       ofstream outfile;
       outfile.open("../../tests/out_A_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "NonThread-D" << endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "Thread-D" << endl;
-      outfile << " Alice Skyline Number:" << Qlen << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Read Time:" << Qread << " s" << endl;
-      outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Alice Mask Time:" << Qmask << " s" << endl;
-      outfile << " Alice SelectQua Time:" << QselectSky << " s" << endl;
-      outfile << " Alice Select Time:" << Qselect << " s" << endl;
-      outfile << " Alice Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Alice Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
-      // for (uint64_t b : XX)
+      outfile << " n = " + to_string(n) + " " + dataname + "Thread-D" << endl;
+      outfile << " CS_ Skyline Number:" << Qlen << endl;
+      outfile << " CS_ Total Time:" << Qtime << " s" << endl;
+      outfile << " CS_ Read Time:" << Qread << " s" << endl;
+      outfile << " CS_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " CS_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " CS_ SelectQua Time:" << QselectSky << " s" << endl;
+      outfile << " CS_ Select Time:" << Qselect << " s" << endl;
+      outfile << " CS_ Mask Communication:" << QCom1 << " MB" << endl;
+      outfile << " CS_ Select Communication:" << QCom2 << " MB" << endl;
+      outfile << " CS_ Communication:" << QCom << " MB" << endl;
+      outfile << " correct rate:" << ((double )(itrs-f)/itrs * 100) << "%" << endl;
+    // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
       // }
-      outfile << endl;
+      // outfile << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
     else
     {
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Bob Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Bob SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " n = " + to_string(n) + " " + dataname << endl;
+      cout << " ES_ Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " ES_ Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " ES_ Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " ES_ Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " ES_ SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
+      cout << " ES_ Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << QCom << " MB" << RESET << endl;
+      cout << " correct rate:" << ((double )(itrs-f)/itrs * 100) << "%" << endl;
       ofstream outfile;
       outfile.open("../../tests/out_B_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "NonThread-D"<< endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "Thread-D"<< endl;
-      outfile << " Bob Skyline Number:" << Qlen << endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Read Time:" << Qread << " s" << endl;
-      outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Bob Mask Time:" << Qmask << " s" << endl;
-      outfile << " Bob SelectQua Time:" << QselectSky << " s" << endl;
-      outfile << " Bob Select Time:" << Qselect << " s" << endl;
-      outfile << " Bob Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Bob Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+      outfile << " n = " + to_string(n) + " " + dataname + "Thread-D"<< endl;
+      outfile << " ES_ Skyline Number:" << Qlen << endl;
+      outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+      outfile << " ES_ Read Time:" << Qread << " s" << endl;
+      outfile << " ES_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " ES_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " ES_ SelectQua Time:" << QselectSky << " s" << endl;
+      outfile << " ES_ Select Time:" << Qselect << " s" << endl;
+      outfile << " ES_ Mask Communication:" << QCom1 << " MB" << endl;
+      outfile << " ES_ Select Communication:" << QCom2 << " MB" << endl;
+      outfile << " ES_ Communication:" << QCom << " MB" << endl;
+      outfile << " correct rate:" << ((double )(itrs-f)/itrs * 100) << "%" << endl;
       // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
       // }
-      outfile << endl;
+      // outfile << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
-  }
-  }
+  // }
+  // }
   delete[] t;
   for (int i = 0; i < THs; i++)
   {
@@ -11226,13 +11505,14 @@ int mainDT(int argc, char **argv)
   return 0;
 }
 
-// other dataset: Dynamic skyline query
-int maindoD(int argc, char **argv)
+// other dataset: Dynamic skyline query-Thread
+int maindoDT(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
   amap.arg("p", port, "Port Number");
   amap.arg("ip", address, "IP Address of server (ALICE)");
+  amap.arg("Pname", Pn, "data name");
   amap.parse(argc, argv);
   for (int i = 0; i < THs; i++)
   {
@@ -11244,10 +11524,11 @@ int maindoD(int argc, char **argv)
   srand(time(0)+party);
   string filen[2] ={"diabets.txt", "obesity.txt"};
   string datan[2] ={"diabets-", "obesity-"};
-  for (int i = 0; i < 2; i++)
-  {
-    filename = filen[i];
-    dataname = datan[i];
+  // for (int i = 0; i < 2; i++)
+  // {
+    int i = 0;
+    filename = filen[Pn];
+    dataname = datan[Pn];
     n = 1000;
     data_path = "./data/" + filename;
     vector<vector<uint32_t>> p;
@@ -11262,7 +11543,7 @@ int maindoD(int argc, char **argv)
     double er = omp_get_wtime();
     double ss_read = er - sr;
     double Qtime = 0, QCom = 0, QCom1 = 0, QCom2 = 0, Qread = 0, Qdummy = 0, Qmask = 0, QselectSky = 0, Qselect = 0, Qlen = 0;
-    int itrs = 20;
+    int itrs = 10;
     for (int itr = 0; itr < itrs; itr++)
     {
       vector<uint32_t> q(m);
@@ -11342,9 +11623,9 @@ int maindoD(int argc, char **argv)
     }
     delete[] SS_G;
     Qtime = Qtime/ itrs;
-    QCom = QCom/ itrs;
-    QCom1 = QCom1/ itrs;
-    QCom2 = QCom2/ itrs;
+    QCom = QCom/ itrs / 1024 / 1024;
+    QCom1 = QCom1/ itrs / 1024 / 1024;
+    QCom2 = QCom2/ itrs / 1024 / 1024;
     Qread = Qread/ itrs;
     Qdummy = Qdummy/ itrs;
     Qmask = Qmask/ itrs;
@@ -11353,71 +11634,71 @@ int maindoD(int argc, char **argv)
     Qlen = Qlen/ itrs;
     if (party == ALICE)
     {
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Alice SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " n = " + to_string(n) + " " + dataname << endl;
+      cout << " CS_Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " CS_Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " CS_Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " CS_Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " CS_SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
+      cout << " CS_Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << QCom << " MB" << RESET << endl;
       ofstream outfile;
       outfile.open("../../tests/out_A_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "NonThread-D" << endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "Thread-D" << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Read Time:" << Qread << " s" << endl;
-      outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Alice Mask Time:" << Qmask << " s" << endl;
-      outfile << " Alice SelectQua Time:" << QselectSky << " s" << endl;
-      outfile << " Alice Select Time:" << Qselect << " s" << endl;
-      outfile << " Alice Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Alice Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
+      outfile << " n = " + to_string(n) + " " + dataname + "Thread-D" << endl;
+      outfile << " CS_ Total Time:" << Qtime << " s" << endl;
+      outfile << " CS_ Read Time:" << Qread << " s" << endl;
+      outfile << " CS_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " CS_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " CS_ SelectQua Time:" << QselectSky << " s" << endl;
+      outfile << " CS_ Select Time:" << Qselect << " s" << endl;
+      outfile << " CS_ Mask Communication:" << QCom1 << " MB" << endl;
+      outfile << " CS_ Select Communication:" << QCom2 << " MB" << endl;
+      outfile << " CS_ Communication:" << QCom << " MB" << endl;
       // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
       // }
-      outfile << endl;
+      // outfile << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
     else
     {
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Bob Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Bob SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " n = " + to_string(n) + " " + dataname << endl;
+      cout << " ES_ Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " ES_ Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " ES_ Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " ES_ Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " ES_ SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
+      cout << " ES_ Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << QCom << " MB" << RESET << endl;
       ofstream outfile;
       outfile.open("../../tests/out_B_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "NonThread-D"<< endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "Thread-D"<< endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Read Time:" << Qread << " s" << endl;
-      outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Bob Mask Time:" << Qmask << " s" << endl;
-      outfile << " Bob SelectQua Time:" << QselectSky << " s" << endl;
-      outfile << " Bob Select Time:" << Qselect << " s" << endl;
-      outfile << " Bob Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Bob Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+      outfile << " n = " + to_string(n) + " " + dataname + "Thread-D"<< endl;
+      outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+      outfile << " ES_ Read Time:" << Qread << " s" << endl;
+      outfile << " ES_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " ES_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " ES_ SelectQua Time:" << QselectSky << " s" << endl;
+      outfile << " ES_ Select Time:" << Qselect << " s" << endl;
+      outfile << " ES_ Mask Communication:" << QCom1 << " MB" << endl;
+      outfile << " ES_ Select Communication:" << QCom2 << " MB" << endl;
+      outfile << " ES_ Communication:" << QCom << " MB" << endl;
       // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
       // }
-      outfile << endl;
+      // outfile << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
-  }
+  // }
 
   for (int i = 0; i < THs; i++)
   {
@@ -11429,13 +11710,14 @@ int maindoD(int argc, char **argv)
   return 0;
 }
 
-//other dataset: Dynamic skyline query-Thread
-int maindoDT(int argc, char **argv)
+//other dataset: Dynamic skyline query
+int maindoD(int argc, char **argv)
 {
   ArgMapping amap;
   amap.arg("r", party, "Role of party: ALICE = 1; BOB = 2");
   amap.arg("p", port, "Port Number");
   amap.arg("ip", address, "IP Address of server (ALICE)");
+  amap.arg("Pname", Pn, "data name");
   amap.parse(argc, argv);
   for (int i = 0; i < THs; i++)
   {
@@ -11447,10 +11729,11 @@ int maindoDT(int argc, char **argv)
   srand(time(0)+party);
   string filen[2] ={"diabets.txt", "obesity.txt"};
   string datan[2] ={"diabets-", "obesity-"};
-  for (int i = 0; i < 2; i++)
-  {
-    filename = filen[i];
-    dataname = datan[i];
+  // for (int i = 0; i < 2; i++)
+  // {
+    int i = 0;
+    filename = filen[Pn];
+    dataname = datan[Pn];
     n = 1000;
     data_path = "./data/" + filename;
     vector<vector<uint32_t>> p;
@@ -11465,7 +11748,7 @@ int maindoDT(int argc, char **argv)
     double er = omp_get_wtime();
     double ss_read = er - sr;
     double Qtime = 0, QCom = 0, QCom1 = 0, QCom2 = 0, Qread = 0, Qdummy = 0, Qmask = 0, QselectSky = 0, Qselect = 0, Qlen = 0;
-    int itrs = 30;
+    int itrs = 10;
     for (int itr = 0; itr < itrs; itr++)
     {
       vector<uint32_t> q(m);
@@ -11545,9 +11828,9 @@ int maindoDT(int argc, char **argv)
     }
     delete[] SS_G;
     Qtime = Qtime/ itrs;
-    QCom = QCom/ itrs;
-    QCom1 = QCom1/ itrs;
-    QCom2 = QCom2/ itrs;
+    QCom = QCom/ itrs / 1024 / 1024;
+    QCom1 = QCom1/ itrs / 1024 / 1024;
+    QCom2 = QCom2/ itrs / 1024 / 1024;
     Qread = Qread/ itrs;
     Qdummy = Qdummy/ itrs;
     Qmask = Qmask/ itrs;
@@ -11556,71 +11839,71 @@ int maindoDT(int argc, char **argv)
     Qlen = Qlen/ itrs;
     if (party == ALICE)
     {
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Alice Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Alice Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Alice Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Alice Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Alice SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
-      cout << "Alice Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Alice Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " n = " + to_string(n) + " " + dataname << endl;
+      cout << " CS_Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " CS_Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " CS_Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " CS_Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " CS_Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " CS_SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
+      cout << " CS_Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " CS_Communication\t" << BLUE << QCom << " MB" << RESET << endl;
       ofstream outfile;
       outfile.open("../../tests/out_A_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "NonThread-D" << endl;
+      outfile << " n = " + to_string(n) + " " + dataname + "NonThread-D" << endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "Thread-D" << endl;
-      outfile << " Alice Total Time:" << Qtime << " s" << endl;
-      outfile << " Alice Read Time:" << Qread << " s" << endl;
-      outfile << " Alice Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Alice Mask Time:" << Qmask << " s" << endl;
-      outfile << " Alice SelectQua Time:" << QselectSky << " s" << endl;
-      outfile << " Alice Select Time:" << Qselect << " s" << endl;
-      outfile << " Alice Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Alice Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Alice Communication:" << QCom << " Bytes" << endl;
+      outfile << " CS_ Total Time:" << Qtime << " s" << endl;
+      outfile << " CS_ Read Time:" << Qread << " s" << endl;
+      outfile << " CS_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " CS_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " CS_ SelectQua Time:" << QselectSky << " s" << endl;
+      outfile << " CS_ Select Time:" << Qselect << " s" << endl;
+      outfile << " CS_ Mask Communication:" << QCom1 << " MB" << endl;
+      outfile << " CS_ Select Communication:" << QCom2 << " MB" << endl;
+      outfile << " CS_ Communication:" << QCom << " MB" << endl;
       // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
       // }
-      outfile << endl;
+      // outfile << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
     else
     {
-      cout << "n = " + to_string(n) + " " + dataname << endl;
-      cout << "Bob Skyline Number\t" << RED << Qlen << RESET << endl;
-      cout << "Bob Total Time\t" << RED << Qtime << " s" << RESET << endl;
-      cout << "Bob Read Time\t" << RED << Qread << " s" << RESET << endl;
-      cout << "Bob Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
-      cout << "Alice Mask Time\t" << RED << Qmask << " s" << RESET << endl;
-      cout << "Bob SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
-      cout << "Bob Select Time\t" << RED << Qselect << " s" << RESET << endl;
-      cout << "Bob Communication\t" << BLUE << QCom << " Bytes" << RESET << endl;
+      cout << " n = " + to_string(n) + " " + dataname << endl;
+      cout << " ES_ Skyline Number\t" << RED << Qlen << RESET << endl;
+      cout << " ES_ Total Time\t" << RED << Qtime << " s" << RESET << endl;
+      cout << " ES_ Read Time\t" << RED << Qread << " s" << RESET << endl;
+      cout << " ES_ Dummy Time\t" << RED << Qdummy << " s" << RESET << endl;
+      cout << " CS_Mask Time\t" << RED << Qmask << " s" << RESET << endl;
+      cout << " ES_ SelectQua Time\t" << RED << QselectSky << " s" << RESET << endl;
+      cout << " ES_ Select Time\t" << RED << Qselect << " s" << RESET << endl;
+      cout << " ES_ Communication\t" << BLUE << QCom << " MB" << RESET << endl;
       ofstream outfile;
       outfile.open("../../tests/out_B_qua.txt", ios::app | ios::in);
       outfile << " -------------------------------------" << endl;
-      outfile << "n = " + to_string(n) + " " + dataname + "NonThread-D"<< endl;
+      outfile << " n = " + to_string(n) + " " + dataname + "NonThread-D"<< endl;
       // outfile << "n = " + to_string(n) + " " + dataname + "Thread-D"<< endl;
-      outfile << " Bob Total Time:" << Qtime << " s" << endl;
-      outfile << " Bob Read Time:" << Qread << " s" << endl;
-      outfile << " Bob Dummy Time:" << Qdummy << " s" << endl;
-      outfile << " Bob Mask Time:" << Qmask << " s" << endl;
-      outfile << " Bob SelectQua Time:" << QselectSky << " s" << endl;
-      outfile << " Bob Select Time:" << Qselect << " s" << endl;
-      outfile << " Bob Mask Communication:" << QCom1 << " Bytes" << endl;
-      outfile << " Bob Select Communication:" << QCom2 << " Bytes" << endl;
-      outfile << " Bob Communication:" << QCom << " Bytes" << endl;
+      outfile << " ES_ Total Time:" << Qtime << " s" << endl;
+      outfile << " ES_ Read Time:" << Qread << " s" << endl;
+      outfile << " ES_ Dummy Time:" << Qdummy << " s" << endl;
+      outfile << " ES_ Mask Time:" << Qmask << " s" << endl;
+      outfile << " ES_ SelectQua Time:" << QselectSky << " s" << endl;
+      outfile << " ES_ Select Time:" << Qselect << " s" << endl;
+      outfile << " ES_ Mask Communication:" << QCom1 << " MB" << endl;
+      outfile << " ES_ Select Communication:" << QCom2 << " MB" << endl;
+      outfile << " ES_ Communication:" << QCom << " MB" << endl;
       // for (uint64_t b : XX)
       // {
       //   outfile << b << "\t";
       // }
-      outfile << endl;
+      // outfile << endl;
       outfile << " -------------------------------------" << endl;
       outfile.close();
     }
-  }
+  // }
   for (int i = 0; i < THs; i++)
   {
     delete Auxt[i];
