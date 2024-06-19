@@ -1,3 +1,0 @@
-/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/CMakeFiles/rebuild_cache.dir
-/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/CMakeFiles/SCI-BuildingBlocks.dir
-/home/chenyu97/github.com/EzPC/SCI/src/BuildingBlocks/CMakeFiles/edit_cache.dir
