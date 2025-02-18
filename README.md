@@ -21,7 +21,7 @@ Note: To test the files, we prepared the relevant executables, where "skyline-OT
 Moreover, we construct shell files where: 
 
 1. "Pname" denotes the dataset by  (0 to 2, representing three datasets：corr, anti, inde),
-2. "Psize" denotes the size of the dataset (0 to 5, representing (100, 1000, 3000, 5000, 7000, and 9000)),
+2. "Psize" denotes the size of the dataset (0 to 6, representing (10, 100, 1000, 3000, 5000, 7000, and 9000)),
 
 ## Run test example:
 
